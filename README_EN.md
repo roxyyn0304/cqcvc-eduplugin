@@ -9,8 +9,7 @@
 - **Who it's for**: Students of Chongqing City Vocational College (`jw.cqcvc.edu.cn`), whose school runs the **Chaoxing Academic Management System** — incompatible with the app's built-in Zhengfang/Qingguo adapters, so it doesn't work out of the box
 - **What it is**: A `kind: independent` academic plugin that implements login, timetable, grades and all other protocols inside the plugin itself — **no APK modification**, independently iterable and publishable
 - **Tech stack**: TypeScript → QuickJS sandbox, academic API v1 contract, official [plugin-starter-v3 dev kit](https://plugins.hidisiwa.xyz/developers)
-- **Origins**: Scaffolded from the official `mock-school` template; protocol documented in [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) reverse-engineering notes (MIT, by 洛宁宁学长 / taffy)
-
+- **Origins**: Scaffolded from the official `mock-school` template; protocol documented in [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) reverse-engineering notes
 ## ✨ Features
 
 ### 🎯 Core features
@@ -121,7 +120,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 
 ## 🙏 Acknowledgements
 
-- [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) reverse-engineering notes (MIT, by 洛宁宁学长 / taffy) — protocol samples
+- [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) reverse-engineering notes — protocol samples
 - [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) — the host app and plugin architecture (host gap filed as [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28))
 - [Plugin developer docs](https://plugins.hidisiwa.xyz/developers) and the plugin-starter-v3 dev kit
 

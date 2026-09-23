@@ -9,8 +9,7 @@
 - **为谁做**：重庆城市职业学院（`jw.cqcvc.edu.cn`）学生——本校使用**超星综合教学管理系统**，与 App 内置的正方/青果适配不兼容，无法开箱即用
 - **是什么**：`kind: independent` 独立教务插件，登录、课表、成绩等协议全部在插件内实现，**不改 APK**，可单独迭代、单独上架
 - **技术栈**：TypeScript → QuickJS 沙箱执行、教务 API v1 契约、官方 [plugin-starter-v3 开发套件](https://plugins.hidisiwa.xyz/developers)
-- **来源**：模板改造自官方 `mock-school`；接口协议来自 [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) 逆向文档（MIT，逆向整理：洛宁宁学长 / taffy）
-
+- **来源**：模板改造自官方 `mock-school`；接口协议来自 [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) 逆向文档
 ## ✨ 功能特性
 
 ### 🎯 核心功能
@@ -120,7 +119,7 @@ node tools/live-probe.mjs --analyze ./credentials.env
 
 ## 🙏 致谢
 
-- [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) 逆向接口文档（MIT，逆向整理：洛宁宁学长 / taffy）——协议样本来源
+- [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) 逆向接口文档——协议样本来源
 - [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) App 本体与插件架构（宿主缺口已提交 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)）
 - [插件开发者文档](https://plugins.hidisiwa.xyz/developers) 与 plugin-starter-v3 开发套件
 
