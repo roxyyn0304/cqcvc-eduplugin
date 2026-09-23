@@ -47,7 +47,7 @@
 2. Open the App → Advanced tools → Import the plugin package
 3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
-> ⛔ **Current status**: the app's plugin channel sends a hardcoded User-Agent that the school's WAF rejects (403), so the plugin cannot run on a real device until the upstream fix lands. See [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) and Notes below.
+> ⛔ **Current status**: the stock app's plugin channel sends a hardcoded User-Agent that the school's WAF rejects (403), so it cannot run until the upstream fix lands; **a Plan A self-built build is verified working on a real device** (see Verification layers under Notes). See [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28).
 
 ### Build from source (developers)
 
@@ -112,10 +112,10 @@ The probe is strictly read-only (login + queries); output contains only status c
 
 ## ⚠️ Notes
 
-- ⛔ **Real-device blocker (host UA)**: the app's `PluginHost.kt` hardcodes `User-Agent: ZhengfangAcademicPlugin/1`, and the school's WAF returns 403 for that UA (browser UA measured 200 on the same endpoint/session — UA was the only difference). Plugins cannot override it; the proposed fix is tracked in [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) (manifest-declared `userAgent`)
+- ⛔ **Real-device blocker (host UA)**: the app's `PluginHost.kt` hardcodes `User-Agent: ZhengfangAcademicPlugin/1`, and the school's WAF returns 403 for that UA (browser UA measured 200 on the same endpoint/session — UA was the only difference). Plugins cannot override it; the proposed fix is tracked in [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) (manifest-declared `userAgent`); **a self-built browser-UA build (Plan A) is confirmed working on a real device**
 - 🚧 **Not implemented**: the entire `selection.*` group (drop/selection protocol undocumented — omitted per the all-or-nothing group rule) and `study.gradeDetails` (no interface sample)
 - 🔒 **Security**: credentials never enter source code, samples, logs or chat; all test fixtures are fictional and redacted; the probe is read-only with no mutations
-- ✅ **Verification layers**: offline samples pass (14/14) → live protocol verified (2026-09-23) → on-device acceptance pending the UA fix
+- ✅ **Verification layers**: offline samples pass (14/14) → live protocol verified (2026-09-23) → **on-device login chain passed (2026-09-23, Plan A custom build: `auth.start` four requests at 200/302, zero 403, identity restored)** → main UI pages & session expiry pending
 - 📜 For learning and personal use only; comply with your school's rules and applicable laws
 
 ## 🙏 Acknowledgements
