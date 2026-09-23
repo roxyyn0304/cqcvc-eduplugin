@@ -184,6 +184,28 @@
           "headers": {"Content-Type": "application/json"},
           "body": "{\"ret\":0,\"msg\":\"获取成功\",\"data\":{\"sjk\":[],\"kbxjxsmc\":\"1\",\"jcKcxx\":[{\"jc\":\"1\",\"kssj\":\"8:20\",\"jssj\":\"9:05\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"高等数学\",\"teacher\":\"王老师\",\"classroom\":\"文华楼101\",\"zcstr\":\"1-8周,10\"}]}]},{\"jc\":\"2\",\"kssj\":\"9:15\",\"jssj\":\"10:00\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"高等数学\",\"teacher\":\"王老师\",\"classroom\":\"文华楼101\",\"zcstr\":\"1-8周,10\"}]}]},{\"jc\":\"3\",\"kssj\":\"10:30\",\"jssj\":\"11:15\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"大学英语\",\"teacher\":\"李老师\",\"classroom\":\"外语楼201\"}]}]},{\"jc\":\"5\",\"kssj\":\"14:00\",\"jssj\":\"14:45\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"-\",\"teacher\":\"-\",\"classroom\":\"-\"}]},{\"yzxq\":\"3\",\"kcxx\":[{\"kcmc\":\"大学体育\",\"teacher\":\"张老师\",\"classroom\":\"田径场\",\"zcstr\":\"1-16周\"}]}]}]}}"
         }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
+          "headers": {"Content-Type": "text/html"},
+          "body": "<html><body><input type=\"hidden\" id=\"xnxq\" value=\"2026-2027-1\"/><input value=\"fixture-xhid-aaaaaaaaaaaaaaaa\" id=\"xhid\" type=\"hidden\"/><input type=\"hidden\" id=\"xqdm\" value=\"00001\"/></body></html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"操作成功\",\"data\":[{\"xingqi\":\"1\",\"djc\":\"1\",\"kcmc\":\"高等数学\",\"zcstr\":\"4,5,9,10,11,12,13,14\",\"zc\":\"4-5,9-14\"},{\"xingqi\":\"1\",\"djc\":\"3\",\"kcmc\":\"大学英语\",\"zcstr\":\"1,2,3,4,5\",\"zc\":\"1-5\"},{\"xingqi\":\"3\",\"djc\":\"5\",\"kcmc\":\"大学体育\",\"zcstr\":\"1,2,3\",\"zc\":\"1-3\"}]}"
+        }
       }
     ],
     "expect": {
@@ -192,9 +214,9 @@
         "termId": "2026-2027-1",
         "maxWeeks": 18,
         "entries": [
-          {"id": "e1", "name": "高等数学", "day": 1, "startPeriod": 1, "endPeriod": 2, "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 10], "teacher": "王老师", "location": "文华楼101"},
-          {"id": "e2", "name": "大学英语", "day": 1, "startPeriod": 3, "endPeriod": 3, "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], "teacher": "李老师", "location": "外语楼201"},
-          {"id": "e3", "name": "大学体育", "day": 3, "startPeriod": 5, "endPeriod": 5, "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], "teacher": "张老师", "location": "田径场"}
+          {"id": "e1", "name": "高等数学", "day": 1, "startPeriod": 1, "endPeriod": 2, "weeks": [4, 5, 9, 10, 11, 12, 13, 14], "teacher": "王老师", "location": "文华楼101"},
+          {"id": "e2", "name": "大学英语", "day": 1, "startPeriod": 3, "endPeriod": 3, "weeks": [1, 2, 3, 4, 5], "teacher": "李老师", "location": "外语楼201"},
+          {"id": "e3", "name": "大学体育", "day": 3, "startPeriod": 5, "endPeriod": 5, "weeks": [1, 2, 3], "teacher": "张老师", "location": "田径场"}
         ]
       }
     }

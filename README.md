@@ -18,7 +18,7 @@
 |------|------|
 | 🔐 登录认证 | 密码用平台共用 RSA 公钥加密提交，登录页预取 + `302 → /admin` 判定，身份读取失败回退学号 |
 | 🔄 会话校验 | 探测当前学年学期接口，被重定向到登录页即 `SESSION_EXPIRED`；冷、热会话双路径 |
-| 📅 课表 | 解析 10 节次 × 7 天网格，相邻同学时段自动合并，周次字符串解析（`1-8周,10`、双/单周），无周次数据时按全学期处理 |
+| 📅 课表 | 解析 10 节次 × 7 天网格，相邻同学时段自动合并；周次取自网页课表同源接口 `sdpkkbList`（按星期+课程+起始节连接，支持 `4-5,9-18` 区间与展开式），周次源不可用时回退全学期 |
 | 🕘 作息表 | 本校 10 节次时间表，已与课表接口真实 `kssj/jssj` 逐节核对一致 |
 | 📚 学期列表 | 解析成绩页 `select#startXnxq` 下拉选项 + 当前学期判定（`2026-2027-1` 形态） |
 | 📊 成绩 | jqGrid 分页、课程性质字典翻译、总学分累计、平均学分绩点（“暂无”自动省略） |
@@ -43,7 +43,7 @@
 
 ### 安装（最简方式）
 
-1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 下载 `local.cqcvc-1.0.0.eduplugin`
+1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 下载 `local.cqcvc-1.0.1.eduplugin`
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
@@ -59,7 +59,7 @@ cd plugin-starter-v3
 npm ci
 npm run plugin -- check cqcvc   # 清单与类型检查
 npm run plugin -- test cqcvc    # 运行 14 条离线用例
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.0.eduplugin
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.1.eduplugin
 ```
 
 ## 📖 使用指南
@@ -96,7 +96,7 @@ node tools/live-probe.mjs --analyze ./credentials.env
 | `auth.resume` / `auth.refreshCaptcha` | — | 本校不触发验证码/网页续接，返回 `UNSUPPORTED` |
 | `auth.validate` | `GET /admin/xsd/xsdcjcx/getCurrentXnxq` | 重定向登录页即会话过期 |
 | `study.terms` | `GET /admin/xsd/xsdcjcx/qbcjcx` + `getCurrentXnxq` | 学期下拉选项 + 当前学期 |
-| `study.schedule` | `GET /admin/getCurrentPkZc` + `POST /admin/getXsdSykb` | 周数 + 当前学期课表 |
+| `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb`（网格）+ `GET queryKbForXsd` 隐藏域 → `GET sdpkkbList`（真周次） | 周数 + 当前学期课表 + 每门课真实周次 |
 | `study.calendar` | 静态配置 | 本校 10 节次作息时间（已实测核对） |
 | `study.grades` | `POST /admin/xsd/xsdcjcx/xsdQueryXscjList` + `GET getXspjxfjd` | 成绩分页 + 平均学分绩点 |
 | `study.exams` | `POST /admin/xsd/kwglXsdKscx/ajaxXsksList` | 考试安排分页 |

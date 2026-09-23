@@ -18,7 +18,7 @@
 |------|------|
 | 🔐 Login | Password encrypted with the platform-wide RSA public key; login-page prefetch + `302 → /admin` detection; identity probe falls back to the student ID |
 | 🔄 Session validation | Probes the current-term endpoint; redirect to the login page means `SESSION_EXPIRED`; handles both cold and warm sessions |
-| 📅 Timetable | Parses the 10-period × 7-day grid, merges adjacent same-course slots, parses week strings (`1-8周,10`, even/odd weeks); falls back to full-semester when no week data exists |
+| 📅 Timetable | Parses the 10-period × 7-day grid and merges adjacent same-course slots; weeks come from the web timetable's own endpoint `sdpkkbList` (joined by weekday + course + start period, supports `4-5,9-18` ranges and expanded lists), falling back to full-semester when the week source is unavailable |
 | 🕘 Class periods | The school's 10-period schedule, verified field-by-field against real `kssj/jssj` values from the API |
 | 📚 Term list | Parses the `select#startXnxq` dropdown on the grades page + current-term detection (`2026-2027-1` format) |
 | 📊 Grades | jqGrid pagination, course-nature dictionary translation, total credits, GPA (auto-omitted when the API returns “暂无”) |
@@ -43,7 +43,7 @@
 
 ### Installation (easiest way)
 
-1. Download `local.cqcvc-1.0.0.eduplugin` from [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases)
+1. Download `local.cqcvc-1.0.1.eduplugin` from [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases)
 2. Open the App → Advanced tools → Import the plugin package
 3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
@@ -59,7 +59,7 @@ cd plugin-starter-v3
 npm ci
 npm run plugin -- check cqcvc   # manifest & type checks
 npm run plugin -- test cqcvc    # run all 14 offline cases
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.0.eduplugin
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.1.eduplugin
 ```
 
 ## 📖 Usage Guide
@@ -97,7 +97,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 | `auth.resume` / `auth.refreshCaptcha` | — | No captcha / web continuation on this school; returns `UNSUPPORTED` |
 | `auth.validate` | `GET /admin/xsd/xsdcjcx/getCurrentXnxq` | Redirect to login page means session expired |
 | `study.terms` | `GET /admin/xsd/xsdcjcx/qbcjcx` + `getCurrentXnxq` | Term dropdown options + current term |
-| `study.schedule` | `GET /admin/getCurrentPkZc` + `POST /admin/getXsdSykb` | Week count + current-term timetable |
+| `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb` (grid) + `GET queryKbForXsd` hidden fields → `GET sdpkkbList` (real weeks) | Week count + current-term timetable + true per-course weeks |
 | `study.calendar` | Static config | 10-period schedule (verified against live API) |
 | `study.grades` | `POST /admin/xsd/xsdcjcx/xsdQueryXscjList` + `GET getXspjxfjd` | Grade pagination + GPA |
 | `study.exams` | `POST /admin/xsd/kwglXsdKscx/ajaxXsksList` | Exam schedule pagination |

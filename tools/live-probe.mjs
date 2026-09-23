@@ -315,5 +315,166 @@ note('字典 xnxq 形态', Array.isArray(dict.json?.data)
   ? dict.json.data.slice(0, 10).map(d => `${d?.value ?? d?.dm ?? '?'}=${d?.label ?? d?.mc ?? '?'}`).join(' | ')
   : (dict.json?.data && typeof dict.json.data === 'object' ? fieldKeys(dict.json.data) : redact(typeof dict.json?.data === 'string' ? dict.json.data : '')));
 
+// ----13. 课表结构深挖（找周次/当前周的真正出处）----
+console.log('\n[13] POST getXsdSykb（深挖：键树 + 周次样值）');
+const sykbRes = await jsonReq('/admin/getXsdSykb', {method: 'POST', form: {}, headers: {'User-Agent': UA}});
+const REDACT = /kcmc|teacher|classroom|tmc|jxbzc|jsxm|xm$/i;
+const weekLike = [];
+const zhouHits = [];
+const seenPaths = new Set();
+const walk = (node, path, depth) => {
+  if (depth > 6) return;
+  if (node === null || typeof node !== 'object') {
+    if (typeof node === 'string') {
+      if (/\d{1,2}\s*-\s*\d{1,2}\s*周|周次|第\d+周|^\d{1,2}(-\d{1,2})+$/.test(node)) weekLike.push(`${path} = ${node}`);
+      else if (node.includes('周') && node.length < 40) zhouHits.push(`${path} = ${node}`);
+    }
+    return;
+  }
+  if (Array.isArray(node)) {
+    const key = `${path}[]`;
+    if (!seenPaths.has(key)) { seenPaths.add(key); console.log(`  ${key} len=${node.length}`); }
+    if (node[0] !== undefined) walk(node[0], `${path}[0]`, depth + 1);
+    return;
+  }
+  for (const [k, v] of Object.entries(node)) {
+    const p = `${path}.${k}`;
+    if (!seenPaths.has(p)) {
+      seenPaths.add(p);
+      const shown = REDACT.test(k) && typeof v === 'string' ? '[redacted]' : (typeof v === 'string' || typeof v === 'number' ? JSON.stringify(v) : Array.isArray(v) ? `array(${v.length})` : 'object');
+      console.log(`  ${p} = ${shown}`);
+    }
+    walk(v, p, depth + 1);
+  }
+};
+if (sykbRes.json) {
+  try {
+    const payload = sykbRes.json;
+    console.log('  --- 键树 ---');
+    walk(payload, 'data', 0);
+    console.log('  --- 周次样值 ---');
+    console.log(weekLike.length ? weekLike.slice(0, 30).map(s => `  ${s}`).join('\n') : '  (无)');
+    console.log('  --- 含“周”的其他字符串 ---');
+    console.log(zhouHits.length ? [...new Set(zhouHits)].slice(0, 15).map(s => `  ${s}`).join('\n') : '  (无)');
+  } catch { console.log('  (响应非 JSON)'); }
+} else console.log(`  HTTP ${sykbRes.status}（被拦或未登录）`);
+await sleep(300);
+
+// ----14. 当前第几周（dqzc）----
+console.log('\n[14] GET getZclistByXnxq（当前第几周）');
+const dq = await req('/admin/api/getZclistByXnxq', {headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}});
+try { const p = JSON.parse(await dq.text()); note('dqzc', JSON.stringify(p?.data ?? p)); } catch { note('dqzc', `HTTP ${dq.status} 非JSON`); }
+
+// ----15. 工作台深挖：字符串扫描 + getMenuList 菜单 ----
+console.log('\n[15] GET /admin + getMenuList（菜单与接口字符串扫描）');
+const home = await req('/admin', {headers: {'Accept': 'text/html'}});
+const homeHtml = await home.text();
+note('工作台', `${home.status}, ${homeHtml.length} 字节`);
+const anchors = [...homeHtml.matchAll(/<a[^>]*href=["']([^"']+)["'][^>]*>([\s\S]{0,80}?)<\/a>/gi)]
+  .map(m => ({href: m[1], text: m[2].replace(/<[^>]+>/g, '').trim()}));
+const menuHits = anchors.filter(a => /课表|教学安排|课程表|排课|kbcx|schedule/i.test(a.text) || /kbcx|schedule|pkbiao|kbzx/i.test(a.href));
+note('课表类菜单(锚点)', menuHits.slice(0, 8).map(a => `${a.text} => ${a.href}`).join(' | ') || '(无)');
+const allAdminStrings = [...new Set([...homeHtml.matchAll(/["'](\/admin\/[A-Za-z0-9_\-./]+)["']/g)].map(m => m[1]))];
+note('页面内 /admin 字符串', allAdminStrings.slice(0, 60).join(' | ') || '(无)');
+const kbStrings = allAdminStrings.filter(u => /kb|schedule|zc|pk/i.test(u));
+note('其中课表/周次相关', kbStrings.join(' | ') || '(无)');
+const iframeSrcs = [...new Set([...homeHtml.matchAll(/<iframe[^>]*src=["']([^"']+)["']/gi)].map(m => m[1]))];
+note('iframe 线索', iframeSrcs.slice(0, 10).join(' | ') || '(无)');
+const candidates = new Set(kbStrings);
+for (const mid of ['1', '2', '3']) {
+  const ml = await jsonReq('/admin/getMenuList', {method: 'POST', form: {id: mid}});
+  note(`getMenuList id=${mid}`, ml.json ? JSON.stringify(ml.json).slice(0, 500) : `HTTP ${ml.status} 非JSON`);
+  if (ml.json) {
+    const urls = [...JSON.stringify(ml.json).matchAll(/"(\/admin\/[^"]+)"/g)].map(m => m[1]);
+    urls.forEach(u => candidates.add(u));
+  }
+  await sleep(200);
+}
+allAdminStrings.filter(u => u.includes('/xsd/')).forEach(u => candidates.add(u));
+menuHits.forEach(a => candidates.add(a.href));
+note('课表候选 URL', [...candidates].slice(0, 25).join(' | ') || '(无)');
+for (const url of [...candidates].slice(0, 3)) {
+  if (!url.startsWith('/')) continue;
+  console.log(`\n[16] GET ${url}`);
+  const page = await req(url, {headers: {'Accept': 'text/html'}});
+  const pageHtml = await page.text();
+  note('页面', `${page.status}, ${pageHtml.length} 字节`);
+  const apis = [...new Set([...pageHtml.matchAll(/["'](\/admin\/[^"'?\s]+)["']/g)].map(m => m[1]))].filter(u => /zc|kb|week|sykb|xnxq/i.test(u));
+  note('  课表/周次类接口', apis.slice(0, 20).join(' | ') || '(无)');
+  const zcSnips = [...new Set([...pageHtml.matchAll(/.{0,50}(?:周次|教学周|当前周|startWeek|zcstr).{0,80}/g)].map(m => m[0].replace(/\s+/g, ' ')))];
+  note('  周次代码片段', zcSnips.slice(0, 12).join(' || ') || '(无)');
+  const zcVals = [...new Set([...pageHtml.matchAll(/[^"'>]{0,30}\d{1,2}\s*-\s*\d{1,2}\s*周[^"'<]{0,30}/g)].map(m => m[0].trim()))];
+  note('  周次样值', zcVals.slice(0, 15).join(' | ') || '(无)');
+}
+
+// ----17. 课表页真身：queryKbForXsd 的调用方式与响应结构 ----
+console.log('\n[17] queryKbForXsd 深挖');
+const kbPage = await req('/admin/pkgl/xskb/queryKbForXsd', {headers: {'Accept': 'text/html'}});
+const kbHtml = (await kbPage.text()).replace(/\s+/g, ' ');
+note('课表页(复取)', `${kbPage.status}, ${kbHtml.length} 字符`);
+for (const key of ['queryKbForXsd', 'reportforxskb', 'getbzxx', 'sdpkkbList']) {
+  const ctx = new RegExp('.{0,160}' + key + '.{0,260}', 'i').exec(kbHtml);
+  note(`${key} 调用上下文`, ctx ? ctx[0] : '(未找到)');
+}
+await sleep(200);
+let kb = await jsonReq('/admin/pkgl/xskb/queryKbForXsd', {method: 'GET'});
+if (!kb.json) kb = await jsonReq('/admin/pkgl/xskb/queryKbForXsd', {method: 'POST', form: {}, headers: {'User-Agent': UA}});
+note('queryKbForXsd 响应', kb.json ? `HTTP ${kb.status}, JSON` : `HTTP ${kb.status} 非JSON ${String(kb.raw).slice(0, 120)}`);
+if (kb.json) {
+  console.log('  --- 键树 ---');
+  walk(kb.json, 'kb', 0);
+  const zcs = [];
+  const grab = (n, p) => {
+    if (!n || typeof n !== 'object') return;
+    if (Array.isArray(n)) { n.slice(0, 50).forEach((x, i) => grab(x, `${p}[${i}]`)); return; }
+    for (const [k, v] of Object.entries(n)) {
+      if (k === 'zcstr') zcs.push(`${p}.zcstr = ${JSON.stringify(v)}`);
+      grab(v, `${p}.${k}`);
+    }
+  };
+  grab(kb.json, 'kb');
+  note('zcstr 全量样本(前30)', zcs.slice(0, 30).join(' | ') || '(无)');
+}
+
+// ----18. 真·课表数据源 sdpkkbList ----
+console.log('\n[18] sdpkkbList（真·课表数据源）');
+const kbUrl = '/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0';
+const kbPage2 = await req(kbUrl, {headers: {'Accept': 'text/html'}});
+const kbHtml2 = await kbPage2.text();
+const grabInput = (id) => {
+  const tags = kbHtml2.match(/<input[^>]*>/gi) ?? [];
+  for (const t of tags) {
+    if (new RegExp(`id=["']${id}["']`, 'i').test(t)) {
+      const v = /value=["']([^"']*)["']/.exec(t);
+      return v ? v[1] : '';
+    }
+  }
+  return '';
+};
+const xhid = grabInput('xhid');
+const xqdm = grabInput('xqdm');
+const xnxqH = grabInput('xnxq');
+note('课表页隐藏域', `状态=${kbPage2.status}, xhid长度=${xhid.length}, xqdm=${JSON.stringify(xqdm)}, xnxq=${JSON.stringify(xnxqH)}`);
+await sleep(200);
+const skQuery = `xnxq=2026-2027-1&xhid=${encodeURIComponent(xhid)}&xqdm=${encodeURIComponent(xqdm)}&zdzc=&zxzc=&xskbxslx=0`;
+let sk = await jsonReq(`/admin/pkgl/xskb/sdpkkbList?${skQuery}`, {method: 'GET', headers: {'User-Agent': UA}});
+if (!sk.json) sk = await jsonReq('/admin/pkgl/xskb/sdpkkbList', {method: 'POST', form: {xnxq: '2026-2027-1', xhid, xqdm, zdzc: '', zxzc: '', xskbxslx: '0'}, headers: {'User-Agent': UA}});
+note('sdpkkbList', sk.json ? `HTTP ${sk.status} JSON` : `HTTP ${sk.status} 非JSON ${String(sk.raw).slice(0, 150)}`);
+if (sk.json) {
+  console.log('  --- 键树 ---');
+  walk(sk.json, 'sk', 0);
+  const zcs = [];
+  const grabZc = (n, p) => {
+    if (!n || typeof n !== 'object') return;
+    if (Array.isArray(n)) { n.slice(0, 120).forEach((x, i) => grabZc(x, `${p}[${i}]`)); return; }
+    for (const [k, v] of Object.entries(n)) {
+      if (k === 'zcstr') zcs.push(`${p} = ${JSON.stringify(v)}`);
+      grabZc(v, `${p}.${k}`);
+    }
+  };
+  grabZc(sk.json, 'sk');
+  note('zcstr 样本(前30)', zcs.slice(0, 30).join(' | ') || '(无)');
+}
+
 console.log('\n=== 探测完成 ===');
 console.log(findings.map(f => `- ${f}`).join('\n'));
