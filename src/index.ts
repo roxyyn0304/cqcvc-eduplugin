@@ -253,7 +253,7 @@ export default {
             for(const row of skR.payload.data){
               const day=Number(row?.xingqi);
               const period=Number(row?.djc);
-              const kcmc=String(row?.kcmc??'').trim();
+              const kcmc=String(row?.kcmc??'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').trim();
               if(!Number.isFinite(day)||day<1||day>7||!Number.isFinite(period)||period<1||!kcmc)continue;
               skCells.push({day,period,kcmc,weeks:parseWeeks(row?.zcstr??row?.zc,maxWeeks)});
             }

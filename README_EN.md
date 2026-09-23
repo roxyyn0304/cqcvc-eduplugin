@@ -43,7 +43,7 @@
 
 ### Installation (easiest way)
 
-1. Download `local.cqcvc-1.0.1.eduplugin` from [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases)
+1. Download `local.cqcvc-1.0.2.eduplugin` from [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases)
 2. Open the App → Advanced tools → Import the plugin package
 3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
@@ -59,7 +59,7 @@ cd plugin-starter-v3
 npm ci
 npm run plugin -- check cqcvc   # manifest & type checks
 npm run plugin -- test cqcvc    # run all 14 offline cases
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.1.eduplugin
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.2.eduplugin
 ```
 
 ## 📖 Usage Guide
