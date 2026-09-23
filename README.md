@@ -43,7 +43,7 @@
 
 ### 安装（最简方式）
 
-1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 下载 `local.cqcvc-1.0.1.eduplugin`
+1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 下载 `local.cqcvc-1.0.2.eduplugin`
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
@@ -59,7 +59,7 @@ cd plugin-starter-v3
 npm ci
 npm run plugin -- check cqcvc   # 清单与类型检查
 npm run plugin -- test cqcvc    # 运行 14 条离线用例
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.1.eduplugin
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.2.eduplugin
 ```
 
 ## 📖 使用指南
