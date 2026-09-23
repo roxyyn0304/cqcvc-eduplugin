@@ -1,6 +1,6 @@
 # CQCVC Chaoxing Academic Plugin
 
-> A standalone academic plugin (eduplugin) for the Zhengfang Academic App — lets students of Chongqing City Vocational College view their timetable, class periods, grades and exams in-app. Protocol verified against the live system with a read-only probe; all 14 offline test cases pass.
+> A standalone academic plugin (eduplugin) for the Zhengfang Academic App — lets students of Chongqing City Vocational College view their timetable, class periods, grades and exams in-app. Protocol verified against the live system with a read-only probe; all 15 offline test cases pass.
 
 🌐 **English** | [简体中文](README.md)
 
@@ -18,7 +18,7 @@
 |------|------|
 | 🔐 Login | Password encrypted with the platform-wide RSA public key; login-page prefetch + `302 → /admin` detection; identity probe falls back to the student ID |
 | 🔄 Session validation | Probes the current-term endpoint; redirect to the login page means `SESSION_EXPIRED`; handles both cold and warm sessions |
-| 📅 Timetable | Parses the 10-period × 7-day grid and merges adjacent same-course slots; weeks come from the web timetable's own endpoint `sdpkkbList` (joined by weekday + course + start period, supports `4-5,9-18` ranges and expanded lists), falling back to full-semester when the week source is unavailable |
+| 📅 Timetable | Parses the 10-period × 7-day grid and merges adjacent same-course slots; weeks come from the web timetable's own endpoint `sdpkkbList` (**room-first** join: rows in a shared slot are attributed by `croommc`, same-start-period rows have their weeks unioned — no row is ever dropped; supports `4-5,9-18` ranges and expanded lists), falling back to full-semester when the week source is unavailable |
 | 🕘 Class periods | The school's 10-period schedule, verified field-by-field against real `kssj/jssj` values from the API |
 | 📚 Term list | Parses the `select#startXnxq` dropdown on the grades page + current-term detection (`2026-2027-1` format) |
 | 📊 Grades | jqGrid pagination, course-nature dictionary translation, total credits, GPA (auto-omitted when the API returns “暂无”) |
@@ -28,7 +28,7 @@
 
 | Tool | Description |
 |------|------|
-| Offline test cases | 14 fixtures executed in an isolated QuickJS runtime with ordered network mocks; covers login success/failure, session expiry, pagination, week parsing and dirty data |
+| Offline test cases | 15 fixtures executed in an isolated QuickJS runtime with ordered network mocks; covers login success/failure, session expiry, pagination, week parsing, **multi-room / multi-week slot joining** and dirty data |
 | Live protocol probe | `tools/live-probe.mjs`: read-only probe script; credentials are read from a local file only, output is redacted (student ID, name, cookies and grades are never printed) |
 | Packaging | `pack` builds the `.eduplugin` installer; `source-zip` builds the review source archive |
 
@@ -43,23 +43,23 @@
 
 ### Installation (easiest way)
 
-1. Download `local.cqcvc-1.0.3.eduplugin` from [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases)
+1. Download the `.eduplugin` package from the [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) page (this project does **not** publish routine releases — if no package is available, build it from source with the guide below)
 2. Open the App → Advanced tools → Import the plugin package
 3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
 > ⛔ **Current status**: the stock app has two on-device blockers (plugin-channel UA rejected by the school WAF with 403 + HyperOS killing the isolated sandbox process), so it cannot run until the upstream fixes land; **a Plan A self-built build is verified logging in successfully on a real device** (dual patch: UA + `isolatedProcess`, see Notes). The UA gap is tracked in [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28).
 
-### Build from source (developers)
+### Build from source (recommended — this project ships a build guide, not releases)
 
 ```bash
 git clone https://github.com/roxyyn0304/cqcvc-eduplugin.git
 # Place this repository into the dev kit's plugins/ directory as cqcvc:
 #   plugin-starter-v3/plugins/cqcvc/
 cd plugin-starter-v3
-npm ci
+npm ci                # In China, add a mirror: --registry=https://registry.npmmirror.com
 npm run plugin -- check cqcvc   # manifest & type checks
-npm run plugin -- test cqcvc    # run all 14 offline cases
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.3.eduplugin
+npm run plugin -- test cqcvc    # run all 15 offline cases
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-*.eduplugin, import it into the app
 ```
 
 ## 📖 Usage Guide
@@ -97,7 +97,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 | `auth.resume` / `auth.refreshCaptcha` | — | No captcha / web continuation on this school; returns `UNSUPPORTED` |
 | `auth.validate` | `GET /admin/xsd/xsdcjcx/getCurrentXnxq` | Redirect to login page means session expired |
 | `study.terms` | `GET /admin/xsd/xsdcjcx/qbcjcx` + `getCurrentXnxq` | Term dropdown options + current term |
-| `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb` (grid) + `GET queryKbForXsd` hidden fields → `GET sdpkkbList` (real weeks) | Week count + current-term timetable + true per-course weeks |
+| `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb` (grid) + `GET queryKbForXsd` hidden fields → `GET sdpkkbList` (real weeks) | Week count + current-term timetable + true per-course weeks (room-first join; multi-room / multi-week rows in one slot are never dropped) |
 | `study.calendar` | `GET getZclistByXnxq` (`dqzc` + response `Date` header) + static periods | Term start date = server-side this Monday − (current week − 1) weeks (week-1 Monday, derived from server time, current term only) + the school's verified 10 daily periods |
 | `study.grades` | `POST /admin/xsd/xsdcjcx/xsdQueryXscjList` + `GET getXspjxfjd` | Grade pagination + GPA |
 | `study.exams` | `POST /admin/xsd/kwglXsdKscx/ajaxXsksList` | Exam schedule pagination |
@@ -116,7 +116,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 - ⚠️ **Real-device pitfall #2 (worked around in the personal build)**: HyperOS kills a freshly spawned `android:isolatedProcess` sandbox process (~0.6s after start, `isolated not needed`) *before* the service publishes, so `onServiceConnected` never arrives and `withTimeout(10_000)` reports "插件调用超时" (plugin call timeout). The personal build removes `isolatedProcess` from the manifest (keeping the `:academic_plugin` separate process, dropping only the isolated UID); after the fix a single bind stays alive and login succeeds. An upstream fix will be proposed separately
 - 🚧 **Not implemented**: the entire `selection.*` group (drop/selection protocol undocumented — omitted per the all-or-nothing group rule) and `study.gradeDetails` (no interface sample)
 - 🔒 **Security**: credentials never enter source code, samples, logs or chat; all test fixtures are fictional and redacted; the probe is read-only with no mutations
-- ✅ **Verification layers**: offline samples pass (14/14) → live protocol verified (2026-09-23) → **on-device main-UI login succeeded (2026-09-23, Plan A dual patch: browser UA past the WAF + `isolatedProcess` removed to dodge the HyperOS kill; log evidence: single bind, zero kills, zero timeouts)** → schedule/grades/exams pages & session expiry pending
+- ✅ **Verification layers**: offline samples pass (15/15) → live protocol verified (2026-09-23, week join 38/38 with 0 unused rows) → **on-device main-UI login succeeded (2026-09-23, Plan A dual patch: browser UA past the WAF + `isolatedProcess` removed to dodge the HyperOS kill; log evidence: single bind, zero kills, zero timeouts)** → schedule/grades/exams pages & session expiry pending
 - 📜 For learning and personal use only; comply with your school's rules and applicable laws
 
 ## 🙏 Acknowledgements

@@ -1,6 +1,6 @@
 # 重庆城市职业学院超星教务适配插件
 
-> 独立教务插件（eduplugin）：让重庆城市职业学院学生在正方教务 App 内查看课表、作息、成绩与考试——协议基于真实账号只读验证，离线用例 14/14 全绿。
+> 独立教务插件（eduplugin）：让重庆城市职业学院学生在正方教务 App 内查看课表、作息、成绩与考试——协议基于真实账号只读验证，离线用例 15/15 全绿。
 
 🌐 [English](README_EN.md) | **简体中文**
 
@@ -18,7 +18,7 @@
 |------|------|
 | 🔐 登录认证 | 密码用平台共用 RSA 公钥加密提交，登录页预取 + `302 → /admin` 判定，身份读取失败回退学号 |
 | 🔄 会话校验 | 探测当前学年学期接口，被重定向到登录页即 `SESSION_EXPIRED`；冷、热会话双路径 |
-| 📅 课表 | 解析 10 节次 × 7 天网格，相邻同学时段自动合并；周次取自网页课表同源接口 `sdpkkbList`（按星期+课程+起始节连接，支持 `4-5,9-18` 区间与展开式），周次源不可用时回退全学期 |
+| 📅 课表 | 解析 10 节次 × 7 天网格，相邻同学时段自动合并；周次取自网页课表同源接口 `sdpkkbList`（**教室优先**连接：同格多教室/多周次行按 `croommc` 归属、同位次多行周次取并集，不丢行；支持 `4-5,9-18` 区间与展开式），周次源不可用时回退全学期 |
 | 🕘 作息表 | 本校 10 节次时间表，已与课表接口真实 `kssj/jssj` 逐节核对一致 |
 | 📚 学期列表 | 解析成绩页 `select#startXnxq` 下拉选项 + 当前学期判定（`2026-2027-1` 形态） |
 | 📊 成绩 | jqGrid 分页、课程性质字典翻译、总学分累计、平均学分绩点（“暂无”自动省略） |
@@ -28,7 +28,7 @@
 
 | 工具 | 说明 |
 |------|------|
-| 离线用例 | 14 条 fixtures，QuickJS 隔离执行、网络全靠有序 mock；覆盖登录成败、会话过期、分页、周次解析与脏数据 |
+| 离线用例 | 15 条 fixtures，QuickJS 隔离执行、网络全靠有序 mock；覆盖登录成败、会话过期、分页、周次解析、**同格多教室多周次贴合**与脏数据 |
 | 真实协议探测 | `tools/live-probe.mjs`：只读探测脚本，凭据仅本地文件读取，输出脱敏（学号、姓名、Cookie、成绩值一律不打印） |
 | 打包 | `pack` 生成 `.eduplugin` 安装包；`source-zip` 生成审核用源码包 |
 
@@ -43,23 +43,23 @@
 
 ### 安装（最简方式）
 
-1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 下载 `local.cqcvc-1.0.3.eduplugin`
+1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 页面下载 `.eduplugin` 安装包（本项目**不做例行发版**，页面没有现成包时按下方「源码构建」自行编译即可）
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
 > ⛔ **当前状态**：原版 App 存在两处真机阻塞（插件通道 UA 被学校 WAF 403 + HyperOS 击杀隔离沙箱进程），上游修复合并前不可用；**方案A 自改包已真机验证登录成功**（UA + `isolatedProcess` 双补丁，见「⚠️ 注意事项」）。UA 缺口见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)。
 
-### 源码构建（开发者）
+### 源码构建（推荐，本项目以编译教程为主）
 
 ```bash
 git clone https://github.com/roxyyn0304/cqcvc-eduplugin.git
 # 将本仓库放入开发套件的 plugins/ 目录，命名为 cqcvc：
 #   plugin-starter-v3/plugins/cqcvc/
 cd plugin-starter-v3
-npm ci
+npm ci                # 国内网络可加镜像：--registry=https://registry.npmmirror.com
 npm run plugin -- check cqcvc   # 清单与类型检查
-npm run plugin -- test cqcvc    # 运行 14 条离线用例
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.3.eduplugin
+npm run plugin -- test cqcvc    # 运行 15 条离线用例
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-*.eduplugin，导入 App 即可
 ```
 
 ## 📖 使用指南
@@ -96,7 +96,7 @@ node tools/live-probe.mjs --analyze ./credentials.env
 | `auth.resume` / `auth.refreshCaptcha` | — | 本校不触发验证码/网页续接，返回 `UNSUPPORTED` |
 | `auth.validate` | `GET /admin/xsd/xsdcjcx/getCurrentXnxq` | 重定向登录页即会话过期 |
 | `study.terms` | `GET /admin/xsd/xsdcjcx/qbcjcx` + `getCurrentXnxq` | 学期下拉选项 + 当前学期 |
-| `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb`（网格）+ `GET queryKbForXsd` 隐藏域 → `GET sdpkkbList`（真周次） | 周数 + 当前学期课表 + 每门课真实周次 |
+| `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb`（网格）+ `GET queryKbForXsd` 隐藏域 → `GET sdpkkbList`（真周次） | 周数 + 当前学期课表 + 每门课真实周次（教室优先贴合，同格多教室/多周次行不丢） |
 | `study.calendar` | `GET getZclistByXnxq`（`dqzc` + 响应 `Date` 头）+ 静态作息 | 开学日期 = 服务器本周一 − (当前周−1) 周（第一周周一，服务端时间推算，仅当前学期）+ 本校 10 节次时间（已实测核对） |
 | `study.grades` | `POST /admin/xsd/xsdcjcx/xsdQueryXscjList` + `GET getXspjxfjd` | 成绩分页 + 平均学分绩点 |
 | `study.exams` | `POST /admin/xsd/kwglXsdKscx/ajaxXsksList` | 考试安排分页 |
@@ -115,7 +115,7 @@ node tools/live-probe.mjs --analyze ./credentials.env
 - ⚠️ **真机坑2（已由自用包规避）**：HyperOS 会在服务发布前以 `isolated not needed` 击杀新拉起的 `android:isolatedProcess` 沙箱进程（启动后 ~0.6 秒必死），客户端永远等不到 `onServiceConnected`，绑定 `withTimeout(10_000)` 到点报「插件调用超时」。自用包清单已移除 `isolatedProcess`（保留 `:academic_plugin` 独立进程，仅放弃隔离 UID），修复后单次绑定稳定运行、登录成功；上游修复建议另行反馈
 - 🚧 **未实现**：`selection.*` 选退课整组（缺提交协议，按整组覆盖规则省略）、`study.gradeDetails`（无接口样本）
 - 🔒 **安全**：凭据不进入源码、样本、日志与对话；测试样本全部虚构脱敏；探测全程只读、无任何写入操作
-- ✅ **验证分层**：离线样本通过（14/14）→ 真实协议验证通过（2026-09-23）→ **真机主界面登录成功（2026-09-23，方案A 双补丁：浏览器 UA 过 WAF + 移除 `isolatedProcess` 避开 HyperOS 击杀；日志证据：单次绑定、零击杀、零超时）** → 课表/成绩/考试三页与会话过期待验
+- ✅ **验证分层**：离线样本通过（15/15）→ 真实协议验证通过（2026-09-23，周次贴合 38/38、未用行 0）→ **真机主界面登录成功（2026-09-23，方案A 双补丁：浏览器 UA 过 WAF + 移除 `isolatedProcess` 避开 HyperOS 击杀；日志证据：单次绑定、零击杀、零超时）** → 课表/成绩/考试三页与会话过期待验
 - 📜 本项目仅供学习与个人使用，请遵守学校规定与相关法律法规
 
 ## 🙏 致谢

@@ -2,7 +2,7 @@
 /**
  * 真实课表抓取验收（复刻插件 schedule 管线，只读）
  * 用法: node tools/fetch-schedule.mjs [env文件路径] [--term=2026-2027-1]
- * 输出脱敏：含课程名/星期/节次/周次/教室（供验收核对），不含教师名与任何身份字段。
+ * 输出：课程名/星期节次/周次/教室/教师（供本人核对），不含学号姓名等身份字段。
  */
 import {readFileSync} from 'node:fs';
 import {publicEncrypt, constants} from 'node:crypto';
@@ -14,6 +14,8 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 const args = process.argv.slice(2);
 const ENV = args.find(a => !a.startsWith('--')) ?? './credentials.env';
 const TERM = (args.find(a => a.startsWith('--term=')) ?? '').split('=')[1] || '';
+const WEEK_ARG = Number((args.find(a => a.startsWith('--week=')) ?? '').split('=')[1]);
+let curWeek = NaN;
 
 // ---- env（两行：学号/密码）----
 const buf = readFileSync(ENV);
@@ -71,6 +73,7 @@ await sleep(200);
   const dq = Number(gz?.data?.dqzc);
   const ms = Date.parse(dateHdr);
   if (Number.isFinite(dq) && dq >= 1 && Number.isFinite(ms)) {
+    curWeek = dq;
     const cn = ms + 8 * 3600 * 1000;
     const wm = cn - ((new Date(cn).getUTCDay() + 6) % 7) * 86400000 - (dq - 1) * 7 * 86400000;
     const d = new Date(wm);
@@ -145,14 +148,26 @@ for (const row of skRows) {
   const day = Number(row?.xingqi), period = Number(row?.djc),
     kcmc = String(row?.kcmc ?? '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
   if (!Number.isFinite(day) || day < 1 || day > 7 || !Number.isFinite(period) || period < 1 || !kcmc) continue;
-  skCells.push({day, period, kcmc, weeks: parseWeeks(row?.zcstr ?? row?.zc, maxWeeks)});
+  const room = String(row?.croommc ?? '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').trim();
+  skCells.push({day, period, kcmc, room, weeks: parseWeeks(row?.zcstr ?? row?.zc, maxWeeks)});
 }
-const weeksFor = (day, period, kcmc) => {
-  let best = null;
-  for (const c of skCells) if (c.day === day && c.kcmc === kcmc && c.period <= period && (!best || c.period > best.period)) best = c;
-  return best ? best.weeks : null;
+const normRoom = (s) => String(s ?? '').replace(/\s+/g, '').replace(/（/g, '(').replace(/）/g, ')').toLowerCase();
+const weeksFor = (day, period, kcmc, room) => {
+  const cands = skCells.map((c, i) => ({c, i})).filter(x => x.c.day === day && x.c.kcmc === kcmc && x.c.period <= period);
+  if (!cands.length) return null;
+  // 教室优先：同一格多行（不同教室/周次）时按教室精确归属，避免先到先得盖掉另一行
+  const nr = normRoom(room);
+  const roomHit = nr ? cands.filter(x => normRoom(x.c.room) === nr) : [];
+  const pool = roomHit.length ? roomHit : cands;
+  const maxP = Math.max(...pool.map(x => x.c.period));
+  const top = pool.filter(x => x.c.period === maxP);
+  const weeks = [...new Set(top.flatMap(x => x.c.weeks))].sort((a, b) => a - b);
+  return {weeks, idxs: top.map(x => x.i)};
 };
+const usedSkIdx = new Set();
 console.log('\n[诊断] 周次源前3格:', JSON.stringify(skCells.slice(0, 3)));
+console.log('\n[诊断] 周次源全量行（周/节/课程/教室/周次）:');
+for (const c of skCells) console.log(`  周${dayName0(c.day)} 第${c.period}节 | ${c.kcmc} | ${c.room ?? ''} | ${c.weeks.join(',')}`);
 let cellTotal = 0, cellHit = 0;
 const drafts = [];
 const diagCells = [];
@@ -167,11 +182,13 @@ for (const block of grid) {
       if (!name || name === '-') continue;
       cellTotal++;
       if (diagCells.length < 3) diagCells.push({day, period, name: JSON.stringify(name)});
-      const joined = weeksFor(day, period, name);
-      if (joined) cellHit++;
+      const joined = weeksFor(day, period, name, k?.classroom);
+      if (joined) { cellHit++; for (const i of joined.idxs) usedSkIdx.add(i); }
       const location = String(k?.classroom ?? '').trim();
-      const e = {name, day, startPeriod: period, endPeriod: period, weeks: joined ?? parseWeeks(k?.zcstr, maxWeeks), _hit: !!joined};
+      const teacher = String(k?.teacher ?? '').trim();
+      const e = {name, day, startPeriod: period, endPeriod: period, weeks: joined ? joined.weeks : parseWeeks(k?.zcstr, maxWeeks), _hit: !!joined};
       if (location) e.location = location;
+      if (teacher) e.teacher = teacher;
       drafts.push(e);
     }
   }
@@ -185,25 +202,46 @@ console.log('[诊断] 网格前3格:', JSON.stringify(diagCells));
   console.log('[诊断] 仅在网格(前5):', JSON.stringify(grNames.filter(n => !skNames.includes(n)).slice(0, 5)));
   console.log('[诊断] 名字交集数:', grNames.filter(n => skNames.includes(n)).length, '/', grNames.length);
 }
+{
+  const unused = skCells.map((c, i) => ({c, i})).filter(x => !usedSkIdx.has(x.i));
+  console.log(`\n[诊断] 周次源中未被网格用到的行=${unused.length}/${skCells.length}（网格缺失/贴合失败的候选）`);
+  for (const {c} of unused) console.log(`  ⚠ 周${dayName0(c.day)} 第${c.period}节 | ${c.kcmc} | 周次=${c.weeks.join(',')}`);
+}
+function dayName0(d) { return ['一', '二', '三', '四', '五', '六', '日'][d - 1] ?? d; }
 const merged = [];
-for (const dr of drafts) {
-  const prev = merged[merged.length - 1];
-  if (prev && prev.day === dr.day && prev.endPeriod + 1 === dr.startPeriod && prev.name === dr.name &&
-      (prev.location ?? '') === (dr.location ?? '') && prev.weeks.join(',') === dr.weeks.join(',') && prev._hit === dr._hit)
-    prev.endPeriod = dr.endPeriod;
-  else merged.push({...dr, weeks: [...dr.weeks]});
+{
+  // 按（星期, 课程, 教室, 周次）分组后合并连续节次，避免交错排序打断合并
+  const groups = new Map();
+  for (const dr of drafts) {
+    const key = [dr.day, dr.name, dr.location ?? '', dr.weeks.join(','), dr._hit].join('\u0001');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(dr);
+  }
+  for (const arr of groups.values()) {
+    arr.sort((a, b) => a.startPeriod - b.startPeriod);
+    let cur = null;
+    for (const dr of arr) {
+      if (cur && cur.endPeriod + 1 === dr.startPeriod) cur.endPeriod = dr.endPeriod;
+      else { cur = {...dr, weeks: [...dr.weeks]}; merged.push(cur); }
+    }
+  }
+  merged.sort((x, y) => x.day - y.day || x.startPeriod - y.startPeriod || x.name.localeCompare(y.name) || String(x.location ?? '').localeCompare(String(y.location ?? '')));
 }
 
-// ---- 输出（脱敏：不含教师名/身份字段）----
-console.log('\n=== 抓取结果（课程名/周次供核对，教师与身份字段已略去）===');
+// ---- 输出（本人会话内展示：含教师名；身份字段仍不输出）----
+const targetWeek = Number.isFinite(WEEK_ARG) && WEEK_ARG >= 1 ? WEEK_ARG : curWeek;
+console.log('\n=== 抓取结果（含教师名，供主人核对）===');
 console.log(`网格课程格=${cellTotal}  周次行=${skCells.length}  周次命中=${cellHit}/${cellTotal} (${cellTotal ? (cellHit * 100 / cellTotal).toFixed(0) : 0}%)`);
-console.log(`合并后条目=${merged.length}\n`);
+console.log(`合并后条目=${merged.length}  目标周=${Number.isFinite(targetWeek) ? '第' + targetWeek + '周' : '(未知)'}\n`);
 const dayName = ['一', '二', '三', '四', '五', '六', '日'];
 for (const e of merged) {
   const weeksDesc = e.weeks.length >= maxWeeks ? `全学期(1-${maxWeeks})` : `${e.weeks.join(',')}（${e.weeks.length}周·断周!）`;
-  console.log(`周${dayName[e.day - 1]} 第${e.startPeriod}${e.endPeriod !== e.startPeriod ? '-' + e.endPeriod : ''}节 | ${e.name} | ${weeksDesc}${e.location ? ' | ' + e.location : ''}`);
+  const onWeek = Number.isFinite(targetWeek) ? (e.weeks.includes(targetWeek) ? '★本周' : '×本周无') : '';
+  console.log(`周${dayName[e.day - 1]} 第${e.startPeriod}${e.endPeriod !== e.startPeriod ? '-' + e.endPeriod : ''}节 | ${e.name}${e.teacher ? ' | ' + e.teacher : ''} | ${weeksDesc}${e.location ? ' | ' + e.location : ''} | ${onWeek}`);
 }
-const partial = [...new Map(merged.filter(e => e.weeks.length < maxWeeks).map(e => [e.name, e.weeks])).entries()];
+const weeksByName = new Map();
+for (const e of merged) { if (!weeksByName.has(e.name)) weeksByName.set(e.name, new Set()); for (const w of e.weeks) weeksByName.get(e.name).add(w); }
+const partial = [...weeksByName].map(([n, s]) => [n, [...s].sort((a, b) => a - b)]).filter(([, w]) => w.length < maxWeeks);
 console.log(`\n=== 断周课程 ${partial.length} 门 ===`);
 for (const [n, w] of partial) console.log(`  ${n}: ${w.join(',')}（${w.length}周）`);
 console.log(`\n判定: ${cellHit === cellTotal ? '✅ 全部课程格都连上了真周次' : `⚠️ ${cellTotal - cellHit} 格回退全学期（请看上面是否有课程周次不对）`}`);
