@@ -47,7 +47,7 @@
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
-> ⛔ **当前状态**：原版 App 的插件通道 User-Agent 被学校 WAF 拦截（403），上游修复合并前不可用；**方案A 自改包已真机验证可用**（见「⚠️ 注意事项」验证分层）。详见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)。
+> ⛔ **当前状态**：原版 App 存在两处真机阻塞（插件通道 UA 被学校 WAF 403 + HyperOS 击杀隔离沙箱进程），上游修复合并前不可用；**方案A 自改包已真机验证登录成功**（UA + `isolatedProcess` 双补丁，见「⚠️ 注意事项」）。UA 缺口见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)。
 
 ### 源码构建（开发者）
 
@@ -112,9 +112,10 @@ node tools/live-probe.mjs --analyze ./credentials.env
 ## ⚠️ 注意事项
 
 - ⛔ **真机阻塞（宿主 UA）**：App 的 `PluginHost.kt` 把 User-Agent 固定为 `ZhengfangAcademicPlugin/1`，学校 WAF 对该 UA 返回 403（实测浏览器 UA 为 200，同端点同会话仅 UA 不同）。插件侧无法覆盖，修复方案见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)（建议清单声明 `userAgent`）；**方案A 自改包（浏览器 UA）真机实测已放行**
+- ⚠️ **真机坑2（已由自用包规避）**：HyperOS 会在服务发布前以 `isolated not needed` 击杀新拉起的 `android:isolatedProcess` 沙箱进程（启动后 ~0.6 秒必死），客户端永远等不到 `onServiceConnected`，绑定 `withTimeout(10_000)` 到点报「插件调用超时」。自用包清单已移除 `isolatedProcess`（保留 `:academic_plugin` 独立进程，仅放弃隔离 UID），修复后单次绑定稳定运行、登录成功；上游修复建议另行反馈
 - 🚧 **未实现**：`selection.*` 选退课整组（缺提交协议，按整组覆盖规则省略）、`study.gradeDetails`（无接口样本）
 - 🔒 **安全**：凭据不进入源码、样本、日志与对话；测试样本全部虚构脱敏；探测全程只读、无任何写入操作
-- ✅ **验证分层**：离线样本通过（14/14）→ 真实协议验证通过（2026-09-23）→ **真机登录链路通过（2026-09-23，自改包方案A：`auth.start` 4 请求 200/302、零 403，身份回填成功）** → 主界面三页与会话过期待验
+- ✅ **验证分层**：离线样本通过（14/14）→ 真实协议验证通过（2026-09-23）→ **真机主界面登录成功（2026-09-23，方案A 双补丁：浏览器 UA 过 WAF + 移除 `isolatedProcess` 避开 HyperOS 击杀；日志证据：单次绑定、零击杀、零超时）** → 课表/成绩/考试三页与会话过期待验
 - 📜 本项目仅供学习与个人使用，请遵守学校规定与相关法律法规
 
 ## 🙏 致谢
