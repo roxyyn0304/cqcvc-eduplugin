@@ -1,0 +1,49 @@
+{
+  "id": "local.cqcvc",
+  "name": "重庆城市职业学院超星教务适配",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "kind": "independent",
+  "capabilities": [
+    "auth.start",
+    "auth.resume",
+    "auth.refreshCaptcha",
+    "auth.validate",
+    "study.terms",
+    "study.schedule",
+    "study.calendar",
+    "study.grades",
+    "study.exams"
+  ],
+  "network": [
+    {
+      "origin": "https://jw.cqcvc.edu.cn",
+      "pathPrefix": "/admin/login",
+      "methods": ["POST"],
+      "purposes": ["auth"]
+    },
+    {
+      "origin": "https://jw.cqcvc.edu.cn",
+      "pathPrefix": "/admin",
+      "methods": ["GET", "POST"],
+      "purposes": ["query", "auth"]
+    },
+    {
+      "origin": "https://jw.cqcvc.edu.cn",
+      "pathPrefix": "/login",
+      "methods": ["GET"],
+      "purposes": ["auth"]
+    }
+  ],
+  "school": {
+    "id": "local.cqcvc",
+    "name": "重庆城市职业学院",
+    "domain": "jw.cqcvc.edu.cn",
+    "protocol": "https",
+    "basePath": "/",
+    "academicSystem": "auto"
+  },
+  "files": {},
+  "entry": "index.js",
+  "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配：登录、学期、课表、作息、成绩与考试查询。协议依据公开逆向文档整理，测试样本均为脱敏虚构数据，不含任何真实账号信息。"
+}

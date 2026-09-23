@@ -1,0 +1,393 @@
+[
+  {
+    "name": "validate-cold-session",
+    "operation": "auth.validate",
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"data\":\"2026-2027-1\"}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "method": "POST",
+        "body": "{}",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":-1,\"msg\":\"没有可选的教学班\",\"data\":{\"xsxh\":\"20240001\",\"xsxm\":\"测试同学\",\"dbname\":\"cqcvc-demo\",\"xkxnxq\":\"2026-2027-1\"}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {"status": "authenticated", "studentId": "20240001", "studentName": "测试同学"}
+    }
+  },
+  {
+    "name": "login-success",
+    "operation": "auth.start",
+    "args": {"username": "20240001", "password": "demo-password"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/login",
+          "headers": {"Content-Type": "text/html"},
+          "body": "<html><head><title>登录</title></head><body><form action=\"/admin/login\" method=\"post\"><input type=\"hidden\" name=\"jcaptchaCode\" value=\"\"/><input type=\"hidden\" name=\"rememberMe\" value=\"1\"/></form></body></html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "method": "POST",
+        "response": {
+          "status": 302,
+          "url": "https://jw.cqcvc.edu.cn/admin/login",
+          "headers": {"Location": "https://jw.cqcvc.edu.cn/admin", "Set-Cookie": "JSESSIONID=fixture-session; Path=/", "Content-Type": "text/html"},
+          "body": ""
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "method": "POST",
+        "body": "{}",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":-1,\"msg\":\"没有可选的教学班\",\"data\":{\"xsxh\":\"20240001\",\"xsxm\":\"测试同学\",\"dbname\":\"cqcvc-demo\",\"xkxnxq\":\"2026-2027-1\"}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {"status": "authenticated", "studentId": "20240001", "studentName": "测试同学"}
+    }
+  },
+  {
+    "name": "login-wrong-password",
+    "operation": "auth.start",
+    "args": {"username": "20240001", "password": "wrong-password"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/login",
+          "headers": {"Content-Type": "text/html"},
+          "body": "<html><body>login form</body></html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/login?jcaptchaError=1",
+          "headers": {"Content-Type": "text/html"},
+          "body": "<html>用户名或密码错误</html>"
+        }
+      }
+    ],
+    "expect": {"ok": false, "error": {"code": "INVALID_CREDENTIALS", "message": "学号或密码错误"}}
+  },
+  {
+    "name": "resume-unsupported",
+    "operation": "auth.resume",
+    "args": {"continuationId": "none"},
+    "expect": {"ok": false, "error": {"code": "UNSUPPORTED", "message": "本校登录不使用验证码或网页续接"}}
+  },
+  {
+    "name": "captcha-unsupported",
+    "operation": "auth.refreshCaptcha",
+    "args": {"continuationId": "none"},
+    "expect": {"ok": false, "error": {"code": "UNSUPPORTED", "message": "本校登录不需要验证码"}}
+  },
+  {
+    "name": "terms",
+    "operation": "study.terms",
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/qbcjcx",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/qbcjcx",
+          "headers": {"Content-Type": "text/html"},
+          "body": "<html><body><select id=\"startXnxq\" class=\"form-control\"><option value=\"2026-2027-1\">2026-2027-1</option><option value=\"2025-2026-2\">2025-2026-2</option><option value=\"2025-2026-1\">2025-2026-1</option></select></body></html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"data\":\"2026-2027-1\"}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {"id": "2026-2027-1", "name": "2026-2027-1", "year": 2026, "semester": 1},
+          {"id": "2025-2026-2", "name": "2025-2026-2", "year": 2025, "semester": 2},
+          {"id": "2025-2026-1", "name": "2025-2026-1", "year": 2025, "semester": 1}
+        ],
+        "currentId": "2026-2027-1"
+      }
+    }
+  },
+  {
+    "name": "schedule-current-term",
+    "operation": "study.schedule",
+    "args": {"termId": "2026-2027-1"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"获取成功\",\"data\":[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\",\"15\",\"16\",\"17\",\"18\"]}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
+        "purpose": "query",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"获取成功\",\"data\":{\"sjk\":[],\"kbxjxsmc\":\"1\",\"jcKcxx\":[{\"jc\":\"1\",\"kssj\":\"8:20\",\"jssj\":\"9:05\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"高等数学\",\"teacher\":\"王老师\",\"classroom\":\"文华楼101\",\"zcstr\":\"1-8周,10\"}]}]},{\"jc\":\"2\",\"kssj\":\"9:15\",\"jssj\":\"10:00\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"高等数学\",\"teacher\":\"王老师\",\"classroom\":\"文华楼101\",\"zcstr\":\"1-8周,10\"}]}]},{\"jc\":\"3\",\"kssj\":\"10:30\",\"jssj\":\"11:15\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"大学英语\",\"teacher\":\"李老师\",\"classroom\":\"外语楼201\"}]}]},{\"jc\":\"5\",\"kssj\":\"14:00\",\"jssj\":\"14:45\",\"kbxx\":[{\"yzxq\":\"1\",\"kcxx\":[{\"kcmc\":\"-\",\"teacher\":\"-\",\"classroom\":\"-\"}]},{\"yzxq\":\"3\",\"kcxx\":[{\"kcmc\":\"大学体育\",\"teacher\":\"张老师\",\"classroom\":\"田径场\",\"zcstr\":\"1-16周\"}]}]}]}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "termId": "2026-2027-1",
+        "maxWeeks": 18,
+        "entries": [
+          {"id": "e1", "name": "高等数学", "day": 1, "startPeriod": 1, "endPeriod": 2, "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 10], "teacher": "王老师", "location": "文华楼101"},
+          {"id": "e2", "name": "大学英语", "day": 1, "startPeriod": 3, "endPeriod": 3, "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], "teacher": "李老师", "location": "外语楼201"},
+          {"id": "e3", "name": "大学体育", "day": 3, "startPeriod": 5, "endPeriod": 5, "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], "teacher": "张老师", "location": "田径场"}
+        ]
+      }
+    }
+  },
+  {
+    "name": "schedule-other-term-empty",
+    "operation": "study.schedule",
+    "args": {"termId": "2025-2026-2"},
+    "http": [],
+    "expect": {"ok": true, "data": {"termId": "2025-2026-2", "entries": [], "maxWeeks": 18}}
+  },
+  {
+    "name": "calendar",
+    "operation": "study.calendar",
+    "args": {"termId": "2026-2027-1"},
+    "expect": {
+      "ok": true,
+      "data": {
+        "termId": "2026-2027-1",
+        "periods": [
+          {"number": 1, "start": "08:20", "end": "09:05"},
+          {"number": 2, "start": "09:15", "end": "10:00"},
+          {"number": 3, "start": "10:30", "end": "11:15"},
+          {"number": 4, "start": "11:25", "end": "12:10"},
+          {"number": 5, "start": "14:00", "end": "14:45"},
+          {"number": 6, "start": "14:55", "end": "15:40"},
+          {"number": 7, "start": "16:10", "end": "16:55"},
+          {"number": 8, "start": "17:05", "end": "17:50"},
+          {"number": 9, "start": "19:30", "end": "20:15"},
+          {"number": 10, "start": "20:25", "end": "21:10"}
+        ]
+      }
+    }
+  },
+  {
+    "name": "grades-page1",
+    "operation": "study.grades",
+    "args": {"termId": "2026-2027-1"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
+        "purpose": "query",
+        "method": "POST",
+        "form": {"page.pn": "1", "page.size": "20", "startXnxq": "2026-2027-1", "endXnxq": "2026-2027-1", "sort": "xnxq", "order": "desc"},
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"page\":1,\"rows\":2,\"total\":40,\"totalPages\":2,\"results\":[{\"id\":\"g1\",\"xnxq\":\"2026-2027-1\",\"kcmc\":\"高等数学\",\"xf\":\"4.0\",\"kcxz\":\"01\",\"zhcj\":\"85.0\",\"jd\":\"3.5\",\"hdxf\":\"4.0\",\"sfbk\":\"0\",\"kkyxmc\":\"基础教学部\",\"xh\":\"20240001\"},{\"id\":\"g2\",\"xnxq\":\"2026-2027-1\",\"kcmc\":\"大学英语\",\"xf\":\"3.0\",\"kcxz\":\"01\",\"zhcj\":\"良好\",\"jd\":\"\",\"hdxf\":\"3.0\",\"sfbk\":\"0\"}]}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"操作成功\",\"data\":\"3.42\"}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {"id": "g1", "name": "高等数学", "score": "85.0", "credits": "4.0", "gradePoint": "3.5", "type": "公共必修课", "termId": "2026-2027-1", "college": "基础教学部"},
+          {"id": "g2", "name": "大学英语", "score": "良好", "credits": "3.0", "type": "公共必修课", "termId": "2026-2027-1"}
+        ],
+        "nextCursor": "2",
+        "gradePointAverage": "3.42",
+        "totalCredits": "7"
+      }
+    }
+  },
+  {
+    "name": "grades-page2-empty-gpa-none",
+    "operation": "study.grades",
+    "args": {"termId": "2026-2027-1", "cursor": "2"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
+        "purpose": "query",
+        "method": "POST",
+        "form": {"page.pn": "2", "page.size": "20", "startXnxq": "2026-2027-1", "endXnxq": "2026-2027-1", "sort": "xnxq", "order": "desc"},
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"page\":2,\"rows\":0,\"total\":40,\"totalPages\":2,\"results\":[]}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"操作成功\",\"data\":\"暂无\"}"
+        }
+      }
+    ],
+    "expect": {"ok": true, "data": {"items": []}}
+  },
+  {
+    "name": "exams-page1",
+    "operation": "study.exams",
+    "args": {"termId": "2026-2027-1"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
+        "purpose": "query",
+        "method": "POST",
+        "form": {
+          "queryFields": "id,kspcmc,xh,xm,kcmc,kssj,jsmc,ksfs,ksxs,zwh,bkcs,bz,rwbz,",
+          "_search": "false",
+          "page.size": "50",
+          "page.pn": "1",
+          "sort": "bjdm asc,zwh asc,id",
+          "order": "asc"
+        },
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"ok\",\"page\":1,\"rows\":3,\"total\":75,\"totalPages\":2,\"results\":[{\"id\":\"x1\",\"kspcmc\":\"期末考试\",\"xh\":\"20240001\",\"xm\":\"测试同学\",\"kcmc\":\"高等数学\",\"kssj\":\"2027-01-10 09:00\",\"jsmc\":\"文华楼427\",\"ksfs\":\"1\",\"ksxs\":\"1\",\"zwh\":\"01\",\"bkcs\":\"0\",\"bz\":\"\",\"rwbz\":\"\"},{\"id\":\"x2\",\"kspcmc\":\"期末考试\",\"kcmc\":\"大学英语\",\"kssj\":\"2027-01-12 14:00\",\"jsmc\":\"外语楼301\",\"zwh\":\"02\"},{\"id\":\"junk\",\"kcmc\":\"\",\"kssj\":\"2027-01-11 09:00\"}]}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {"id": "x1", "name": "高等数学", "time": "2027-01-10 09:00", "location": "文华楼427", "seat": "01", "examName": "期末考试"},
+          {"id": "x2", "name": "大学英语", "time": "2027-01-12 14:00", "location": "外语楼301", "seat": "02", "examName": "期末考试"}
+        ],
+        "nextCursor": "2"
+      }
+    }
+  },
+  {
+    "name": "exams-page2",
+    "operation": "study.exams",
+    "args": {"termId": "2026-2027-1", "cursor": "2"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
+        "purpose": "query",
+        "method": "POST",
+        "form": {
+          "queryFields": "id,kspcmc,xh,xm,kcmc,kssj,jsmc,ksfs,ksxs,zwh,bkcs,bz,rwbz,",
+          "_search": "false",
+          "page.size": "50",
+          "page.pn": "2",
+          "sort": "bjdm asc,zwh asc,id",
+          "order": "asc"
+        },
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"ok\",\"page\":2,\"rows\":1,\"total\":75,\"totalPages\":2,\"results\":[{\"id\":\"x3\",\"kspcmc\":\"期末考试\",\"kcmc\":\"高等数学\",\"kssj\":\"2027-01-15 09:00\",\"jsmc\":\"文华楼427\",\"zwh\":\"03\"}]}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {"id": "x3", "name": "高等数学", "time": "2027-01-15 09:00", "location": "文华楼427", "seat": "03", "examName": "期末考试"}
+        ]
+      }
+    }
+  },
+  {
+    "name": "validate-expired",
+    "operation": "auth.validate",
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 302,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
+          "headers": {"Location": "/login", "Content-Type": "text/html"},
+          "body": ""
+        }
+      }
+    ],
+    "expect": {"ok": false, "error": {"code": "SESSION_EXPIRED", "message": "会话已失效，请重新登录"}}
+  }
+]
