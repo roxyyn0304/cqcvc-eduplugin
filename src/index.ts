@@ -54,8 +54,18 @@ const isLoginUrl=(u:string):boolean=>pathOf(u).toLowerCase().endsWith('login');
 
 const headerOf=(res:HttpResponse,name:string):string=>{
   const headers=res.headers??{};
-  for(const key of Object.keys(headers))if(key.toLowerCase()===name)return headers[key];
+  for(const key of Object.keys(headers))if(key.toLowerCase()===name.toLowerCase())return headers[key];
   return'';
+};
+
+/** 解析 HTTP Date（RFC1123）——QuickJS 的 Date.parse 只认 ISO8601，必须手写 */
+const parseHttpDate=(s:string):number=>{
+  const m=/^(?:\w{3}),?\s*(\d{1,2})\s+(\w{3})\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+GMT$/.exec(s.trim());
+  if(!m)return NaN;
+  const months:Record<string,number>={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const mon=months[m[2]];
+  if(mon===undefined)return NaN;
+  return Date.UTC(Number(m[3]),mon,Number(m[1]),Number(m[4]),Number(m[5]),Number(m[6]));
 };
 
 /** 判断一次响应是否表示「未登录 / 被打回登录页」（兼容302/303 跳转与已跟随两种宿主行为）。 */
@@ -308,7 +318,32 @@ export default {
       return ok<Schedule>({termId:a.termId,maxWeeks,entries});
     },
     /** 作息：本校10 节次时间表为静态配置（已与真实课表 kssj/jssj 逐节核对一致）。 */
-    calendar:(a)=>ok<Calendar>({termId:a.termId,periods:PERIODS.map(p=>({number:p.number,start:p.start,end:p.end}))}),
+    calendar:async(a,c,s)=>{
+      // 开学日期（第一周周一）= 服务器 Date 头的本周一 − (dqzc−1) 周；仅当前学期可推算
+      const current=await s.state.get<string>('cqcvc.currentTermId');
+      const isCurrent=!current||current===a.termId;
+      let startDate:string|undefined;
+      if(isCurrent){
+        try{
+          const res=await s.http({url:`${ORIGIN}/admin/api/getZclistByXnxq`,method:'GET',purpose:'query',headers:AJAX_HEADERS});
+          if(!pointsToLogin(res)&&res.status>=200&&res.status<300){
+            const payload=JSON.parse(res.body);
+            const dq=Number(payload?.data?.dqzc);
+            const ms=parseHttpDate(headerOf(res,'Date'));
+            if(Number.isFinite(dq)&&dq>=1&&Number.isFinite(ms)){
+              const cn=ms+8*3600*1000;
+              const weekMonday=cn-((new Date(cn).getUTCDay()+6)%7)*86400000-(dq-1)*7*86400000;
+              const d=new Date(weekMonday);
+              const pad=(n:number)=>String(n).padStart(2,'0');
+              startDate=`${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+            }
+          }
+        }catch{/* 推算失败则不提供 startDate */}
+      }
+      const value:Calendar={termId:a.termId,periods:PERIODS.map(p=>({number:p.number,start:p.start,end:p.end}))};
+      if(startDate)value.startDate=startDate;
+      return ok(value);
+    },
     /** 成绩：jqGrid 分页 + 平均学分绩点；startXnxq/endXnxq 即完整学年学期串（真实验证）。 */
     grades:async(a,c,s)=>{
       const pn=a.cursor?Math.max(1,Number(a.cursor)||1):1;

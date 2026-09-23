@@ -43,7 +43,7 @@
 
 ### 安装（最简方式）
 
-1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 下载 `local.cqcvc-1.0.2.eduplugin`
+1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 下载 `local.cqcvc-1.0.3.eduplugin`
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
@@ -59,7 +59,7 @@ cd plugin-starter-v3
 npm ci
 npm run plugin -- check cqcvc   # 清单与类型检查
 npm run plugin -- test cqcvc    # 运行 14 条离线用例
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.2.eduplugin
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.3.eduplugin
 ```
 
 ## 📖 使用指南
@@ -97,7 +97,7 @@ node tools/live-probe.mjs --analyze ./credentials.env
 | `auth.validate` | `GET /admin/xsd/xsdcjcx/getCurrentXnxq` | 重定向登录页即会话过期 |
 | `study.terms` | `GET /admin/xsd/xsdcjcx/qbcjcx` + `getCurrentXnxq` | 学期下拉选项 + 当前学期 |
 | `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb`（网格）+ `GET queryKbForXsd` 隐藏域 → `GET sdpkkbList`（真周次） | 周数 + 当前学期课表 + 每门课真实周次 |
-| `study.calendar` | 静态配置 | 本校 10 节次作息时间（已实测核对） |
+| `study.calendar` | `GET getZclistByXnxq`（`dqzc` + 响应 `Date` 头）+ 静态作息 | 开学日期 = 服务器本周一 − (当前周−1) 周（第一周周一，服务端时间推算，仅当前学期）+ 本校 10 节次时间（已实测核对） |
 | `study.grades` | `POST /admin/xsd/xsdcjcx/xsdQueryXscjList` + `GET getXspjxfjd` | 成绩分页 + 平均学分绩点 |
 | `study.exams` | `POST /admin/xsd/kwglXsdKscx/ajaxXsksList` | 考试安排分页 |
 

@@ -63,6 +63,25 @@ const term = TERM || String((await curR.json()).data ?? '');
 console.log('[学期] ' + term);
 await sleep(200);
 
+// ---- 开学日期推算（与插件 calendar 一致：Date 头本周一 − (dqzc-1) 周）----
+{
+  const gzR = await req('/admin/api/getZclistByXnxq', {headers: {'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json'}});
+  const gz = await gzR.json();
+  const dateHdr = gzR.headers.get('date') ?? '';
+  const dq = Number(gz?.data?.dqzc);
+  const ms = Date.parse(dateHdr);
+  if (Number.isFinite(dq) && dq >= 1 && Number.isFinite(ms)) {
+    const cn = ms + 8 * 3600 * 1000;
+    const wm = cn - ((new Date(cn).getUTCDay() + 6) % 7) * 86400000 - (dq - 1) * 7 * 86400000;
+    const d = new Date(wm);
+    const p2 = (n) => String(n).padStart(2, '0');
+    console.log(`[开学日期] Date头=${JSON.stringify(dateHdr)}, dqzc=${dq} → 第一周周一=${d.getUTCFullYear()}-${p2(d.getUTCMonth() + 1)}-${p2(d.getUTCDate())}`);
+  } else {
+    console.log(`[开学日期] 推算失败 Date=${JSON.stringify(dateHdr)} dqzc=${gz?.data?.dqzc}`);
+  }
+}
+await sleep(200);
+
 // ---- 周数 ----
 const pkR = await req('/admin/getCurrentPkZc', {headers: {'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json'}});
 const pkData = (await pkR.json()).data ?? [];
