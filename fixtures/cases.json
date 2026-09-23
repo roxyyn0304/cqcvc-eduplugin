@@ -232,10 +232,24 @@
     "name": "calendar",
     "operation": "study.calendar",
     "args": {"termId": "2026-2027-1"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq",
+          "headers": {"Content-Type": "application/json", "Date": "Wed, 23 Sep 2026 06:00:00 GMT"},
+          "body": "{\"ret\":0,\"data\":{\"dqzc\":\"4\"}}"
+        }
+      }
+    ],
     "expect": {
       "ok": true,
       "data": {
         "termId": "2026-2027-1",
+        "startDate": "2026-08-31",
         "periods": [
           {"number": 1, "start": "08:20", "end": "09:05"},
           {"number": 2, "start": "09:15", "end": "10:00"},

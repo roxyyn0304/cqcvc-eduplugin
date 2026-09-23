@@ -43,7 +43,7 @@
 
 ### Installation (easiest way)
 
-1. Download `local.cqcvc-1.0.2.eduplugin` from [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases)
+1. Download `local.cqcvc-1.0.3.eduplugin` from [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases)
 2. Open the App → Advanced tools → Import the plugin package
 3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
@@ -59,7 +59,7 @@ cd plugin-starter-v3
 npm ci
 npm run plugin -- check cqcvc   # manifest & type checks
 npm run plugin -- test cqcvc    # run all 14 offline cases
-npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.2.eduplugin
+npm run plugin -- pack cqcvc    # → dist/local.cqcvc-1.0.3.eduplugin
 ```
 
 ## 📖 Usage Guide
@@ -98,7 +98,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 | `auth.validate` | `GET /admin/xsd/xsdcjcx/getCurrentXnxq` | Redirect to login page means session expired |
 | `study.terms` | `GET /admin/xsd/xsdcjcx/qbcjcx` + `getCurrentXnxq` | Term dropdown options + current term |
 | `study.schedule` | `GET getCurrentPkZc` + `POST getXsdSykb` (grid) + `GET queryKbForXsd` hidden fields → `GET sdpkkbList` (real weeks) | Week count + current-term timetable + true per-course weeks |
-| `study.calendar` | Static config | 10-period schedule (verified against live API) |
+| `study.calendar` | `GET getZclistByXnxq` (`dqzc` + response `Date` header) + static periods | Term start date = server-side this Monday − (current week − 1) weeks (week-1 Monday, derived from server time, current term only) + the school's verified 10 daily periods |
 | `study.grades` | `POST /admin/xsd/xsdcjcx/xsdQueryXscjList` + `GET getXspjxfjd` | Grade pagination + GPA |
 | `study.exams` | `POST /admin/xsd/kwglXsdKscx/ajaxXsksList` | Exam schedule pagination |
 

@@ -1,7 +1,7 @@
 {
   "id": "local.cqcvc",
   "name": "重庆城市职业学院超星教务适配",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "apiVersion": 1,
   "kind": "independent",
   "capabilities": [
