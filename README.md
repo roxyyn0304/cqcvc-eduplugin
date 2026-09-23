@@ -47,7 +47,7 @@
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
-> ⛔ **当前状态**：原版 App 的插件通道 User-Agent 被学校 WAF 拦截（403），上游修复合并前真机不可用。详见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 与「⚠️ 注意事项」。
+> ⛔ **当前状态**：原版 App 的插件通道 User-Agent 被学校 WAF 拦截（403），上游修复合并前不可用；**方案A 自改包已真机验证可用**（见「⚠️ 注意事项」验证分层）。详见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)。
 
 ### 源码构建（开发者）
 
@@ -111,10 +111,10 @@ node tools/live-probe.mjs --analyze ./credentials.env
 
 ## ⚠️ 注意事项
 
-- ⛔ **真机阻塞（宿主 UA）**：App 的 `PluginHost.kt` 把 User-Agent 固定为 `ZhengfangAcademicPlugin/1`，学校 WAF 对该 UA 返回 403（实测浏览器 UA 为 200，同端点同会话仅 UA 不同）。插件侧无法覆盖，修复方案见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)（建议清单声明 `userAgent`）
+- ⛔ **真机阻塞（宿主 UA）**：App 的 `PluginHost.kt` 把 User-Agent 固定为 `ZhengfangAcademicPlugin/1`，学校 WAF 对该 UA 返回 403（实测浏览器 UA 为 200，同端点同会话仅 UA 不同）。插件侧无法覆盖，修复方案见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)（建议清单声明 `userAgent`）；**方案A 自改包（浏览器 UA）真机实测已放行**
 - 🚧 **未实现**：`selection.*` 选退课整组（缺提交协议，按整组覆盖规则省略）、`study.gradeDetails`（无接口样本）
 - 🔒 **安全**：凭据不进入源码、样本、日志与对话；测试样本全部虚构脱敏；探测全程只读、无任何写入操作
-- ✅ **验证分层**：离线样本通过（14/14）→ 真实协议验证通过（2026-09-23）→ 真机验收待 UA 修复后进行
+- ✅ **验证分层**：离线样本通过（14/14）→ 真实协议验证通过（2026-09-23）→ **真机登录链路通过（2026-09-23，自改包方案A：`auth.start` 4 请求 200/302、零 403，身份回填成功）** → 主界面三页与会话过期待验
 - 📜 本项目仅供学习与个人使用，请遵守学校规定与相关法律法规
 
 ## 🙏 致谢
