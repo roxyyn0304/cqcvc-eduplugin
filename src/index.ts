@@ -232,6 +232,41 @@ export default {
       if(!scR.ok)return{ok:false,error:scR.error};
       const payload=scR.payload;
       if(Number(payload?.ret)!==0)return err('VALIDATION_FAILED',String(payload?.msg||'课表获取失败'));
+      // 真·周次数据源（与网页课表同源）：课表页隐藏域取 xhid/xqdm → sdpkkbList
+      const skCells:{day:number;period:number;kcmc:string;weeks:number[]}[]=[];
+      try{
+        const pageRes=await s.http({url:`${ORIGIN}/admin/pkgl/xskb/queryKbForXsd?xnxq=${encodeURIComponent(a.termId)}&zxzc=&zdzc=&xskbxslx=0`,method:'GET',purpose:'query',headers:{'Accept':'text/html'}});
+        const hiddenValue=(id:string):string=>{
+          const tags=pageRes.body.match(/<input[^>]*>/gi)??[];
+          for(const tag of tags){
+            if(new RegExp(`id=["']${id}["']`,'i').test(tag)){
+              const v=/value=["']([^"']*)["']/.exec(tag);
+              if(v)return v[1];
+            }
+          }
+          return'';
+        };
+        const xhid=hiddenValue('xhid');
+        if(xhid){
+          const skR=await fetchJson(s,{url:`${ORIGIN}/admin/pkgl/xskb/sdpkkbList?xnxq=${encodeURIComponent(a.termId)}&xhid=${encodeURIComponent(xhid)}&xqdm=${encodeURIComponent(hiddenValue('xqdm'))}&zdzc=&zxzc=&xskbxslx=0`,method:'GET',purpose:'query',headers:AJAX_HEADERS});
+          if(skR.ok&&Array.isArray(skR.payload?.data)){
+            for(const row of skR.payload.data){
+              const day=Number(row?.xingqi);
+              const period=Number(row?.djc);
+              const kcmc=String(row?.kcmc??'').trim();
+              if(!Number.isFinite(day)||day<1||day>7||!Number.isFinite(period)||period<1||!kcmc)continue;
+              skCells.push({day,period,kcmc,weeks:parseWeeks(row?.zcstr??row?.zc,maxWeeks)});
+            }
+          }
+        }
+      }catch{/* 周次源不可用 → 各单元回退全学期 */}
+      const weeksFor=(day:number,period:number,kcmc:string):number[]|null=>{
+        let best:{period:number;weeks:number[]}|null=null;
+        for(const c of skCells){
+          if(c.day===day&&c.kcmc===kcmc&&c.period<=period&&(!best||c.period>best.period))best=c;
+        }
+        return best?best.weeks:null;
+      };
       const drafts:Array<Omit<ScheduleEntry,'id'>>=[];
       const blocks=payload?.data?.jcKcxx;
       if(Array.isArray(blocks)){
@@ -250,7 +285,7 @@ export default {
               if(!name||name==='-')continue;
               const teacher=String(course?.teacher??'').trim();
               const location=String(course?.classroom??'').trim();
-              const weeks=parseWeeks(course?.zcstr??dayBlock?.zcstr??block?.zcstr,maxWeeks);
+              const weeks=weeksFor(day,period,name)??parseWeeks(course?.zcstr??dayBlock?.zcstr??block?.zcstr,maxWeeks);
               const draft:Omit<ScheduleEntry,'id'>={name,day,startPeriod:period,endPeriod:period,weeks};
               if(teacher)draft.teacher=teacher;
               if(location)draft.location=location;
