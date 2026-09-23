@@ -425,5 +425,67 @@
       }
     ],
     "expect": {"ok": false, "error": {"code": "SESSION_EXPIRED", "message": "会话已失效，请重新登录"}}
+  },
+  {
+    "name": "schedule-multi-room-weeks",
+    "operation": "study.schedule",
+    "args": {"termId": "2026-2027-1"},
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"获取成功\",\"data\":[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\",\"15\",\"16\",\"17\",\"18\"]}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
+        "purpose": "query",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"获取成功\",\"data\":{\"sjk\":[],\"kbxjxsmc\":\"1\",\"jcKcxx\":[{\"jc\":\"1\",\"kssj\":\"8:20\",\"jssj\":\"9:05\",\"kbxx\":[{\"yzxq\":\"4\",\"kcxx\":[{\"kcmc\":\"高等数学\",\"teacher\":\"周老师\",\"classroom\":\"文华楼125\"},{\"kcmc\":\"高等数学\",\"teacher\":\"周老师\",\"classroom\":\"文华楼521\"}]}]},{\"jc\":\"2\",\"kssj\":\"9:15\",\"jssj\":\"10:00\",\"kbxx\":[{\"yzxq\":\"4\",\"kcxx\":[{\"kcmc\":\"高等数学\",\"teacher\":\"周老师\",\"classroom\":\"文华楼125\"},{\"kcmc\":\"高等数学\",\"teacher\":\"周老师\",\"classroom\":\"文华楼521\"}]}]}]}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
+          "headers": {"Content-Type": "text/html"},
+          "body": "<html><body><input type=\"hidden\" id=\"xnxq\" value=\"2026-2027-1\"/><input value=\"fixture-xhid-aaaaaaaaaaaaaaaa\" id=\"xhid\" type=\"hidden\"/><input type=\"hidden\" id=\"xqdm\" value=\"00001\"/></body></html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
+        "purpose": "query",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"ret\":0,\"msg\":\"操作成功\",\"data\":[{\"xingqi\":\"4\",\"djc\":\"1\",\"kcmc\":\"<a>高等数学</a>\",\"croommc\":\"<a>文华楼125</a>\",\"zcstr\":\"15,16,17,18\",\"zc\":\"15-18\"},{\"xingqi\":\"4\",\"djc\":\"1\",\"kcmc\":\"<a>高等数学</a>\",\"croommc\":\"<a>文华楼521</a>\",\"zcstr\":\"4,5\",\"zc\":\"4-5\"},{\"xingqi\":\"4\",\"djc\":\"2\",\"kcmc\":\"<a>高等数学</a>\",\"croommc\":\"<a>文华楼125</a>\",\"zcstr\":\"15,16,17,18\",\"zc\":\"15-18\"},{\"xingqi\":\"4\",\"djc\":\"2\",\"kcmc\":\"<a>高等数学</a>\",\"croommc\":\"<a>文华楼521</a>\",\"zcstr\":\"4,5\",\"zc\":\"4-5\"}]}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "termId": "2026-2027-1",
+        "maxWeeks": 18,
+        "entries": [
+          {"id": "e1", "name": "高等数学", "day": 4, "startPeriod": 1, "endPeriod": 2, "weeks": [15, 16, 17, 18], "teacher": "周老师", "location": "文华楼125"},
+          {"id": "e2", "name": "高等数学", "day": 4, "startPeriod": 1, "endPeriod": 2, "weeks": [4, 5], "teacher": "周老师", "location": "文华楼521"}
+        ]
+      }
+    }
   }
 ]

@@ -218,7 +218,7 @@ export default {
       await s.state.set('cqcvc.termRange',[ids[0],ids[ids.length-1]]);
       return ok<Terms>({items,currentId});
     },
-    /** 课表：getCurrentPkZc 取周数（真实值20），getXsdSykb 取当前学期课表（真实响应无周次字段，按全学期处理）。 */
+    /** 课表：getCurrentPkZc 取周数（真实值20），getXsdSykb 取网格 + sdpkkbList 取真周次（教室优先贴合，详见 promat）；周次源不可用时回退全学期。 */
     schedule:async(a,c,s)=>{
       const current=await s.state.get<string>('cqcvc.currentTermId');
       if(current&&a.termId!==current){
@@ -242,8 +242,8 @@ export default {
       if(!scR.ok)return{ok:false,error:scR.error};
       const payload=scR.payload;
       if(Number(payload?.ret)!==0)return err('VALIDATION_FAILED',String(payload?.msg||'课表获取失败'));
-      // 真·周次数据源（与网页课表同源）：课表页隐藏域取 xhid/xqdm → sdpkkbList
-      const skCells:{day:number;period:number;kcmc:string;weeks:number[]}[]=[];
+      // 真·周次数据源（与网页课表同源）：课表页隐藏域取 xhid/xqdm → sdpkkbList（行含教室 croommc）
+      const skCells:{day:number;period:number;kcmc:string;room:string;weeks:number[]}[]=[];
       try{
         const pageRes=await s.http({url:`${ORIGIN}/admin/pkgl/xskb/queryKbForXsd?xnxq=${encodeURIComponent(a.termId)}&zxzc=&zdzc=&xskbxslx=0`,method:'GET',purpose:'query',headers:{'Accept':'text/html'}});
         const hiddenValue=(id:string):string=>{
@@ -265,17 +265,28 @@ export default {
               const period=Number(row?.djc);
               const kcmc=String(row?.kcmc??'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').trim();
               if(!Number.isFinite(day)||day<1||day>7||!Number.isFinite(period)||period<1||!kcmc)continue;
-              skCells.push({day,period,kcmc,weeks:parseWeeks(row?.zcstr??row?.zc,maxWeeks)});
+              const room=String(row?.croommc??'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').trim();
+              skCells.push({day,period,kcmc,room,weeks:parseWeeks(row?.zcstr??row?.zc,maxWeeks)});
             }
           }
         }
       }catch{/* 周次源不可用 → 各单元回退全学期 */}
-      const weeksFor=(day:number,period:number,kcmc:string):number[]|null=>{
-        let best:{period:number;weeks:number[]}|null=null;
-        for(const c of skCells){
-          if(c.day===day&&c.kcmc===kcmc&&c.period<=period&&(!best||c.period>best.period))best=c;
-        }
-        return best?best.weeks:null;
+      /** 教室比较前的归一化：去空白 + 全半角括号统一 + 小写。 */
+      const normRoom=(v:string):string=>v.replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').toLowerCase();
+      /** 把周次源行贴到网格单元：教室优先——同一格可能有多行（不同教室、不同周次），先到先得会静默丢行。
+       * 实测案例：周四第1-2节高数 文华楼125=第15-18周、文华楼521=第4-5周，旧算法取到125行就丢掉521行，第4周课程被漏排。
+       * 流程：候选（同星期、剥壳同名、起始节≤目标节）→ 教室命中时收窄到该教室 → 取起始节最大者 → 同起始节多行周次取并集。 */
+      const weeksFor=(day:number,period:number,kcmc:string,location:string):number[]|null=>{
+        const cands=skCells.filter(c=>c.day===day&&c.kcmc===kcmc&&c.period<=period);
+        if(!cands.length)return null;
+        const nr=normRoom(location);
+        const roomHit=nr?cands.filter(c=>normRoom(c.room)===nr):[];
+        const pool=roomHit.length?roomHit:cands;
+        let maxP=0;
+        for(const c of pool)if(c.period>maxP)maxP=c.period;
+        const set=new Set<number>();
+        for(const c of pool)if(c.period===maxP)for(const w of c.weeks)set.add(w);
+        return Array.from(set).sort((x,y)=>x-y);
       };
       const drafts:Array<Omit<ScheduleEntry,'id'>>=[];
       const blocks=payload?.data?.jcKcxx;
@@ -295,7 +306,7 @@ export default {
               if(!name||name==='-')continue;
               const teacher=String(course?.teacher??'').trim();
               const location=String(course?.classroom??'').trim();
-              const weeks=weeksFor(day,period,name)??parseWeeks(course?.zcstr??dayBlock?.zcstr??block?.zcstr,maxWeeks);
+              const weeks=weeksFor(day,period,name,location)??parseWeeks(course?.zcstr??dayBlock?.zcstr??block?.zcstr,maxWeeks);
               const draft:Omit<ScheduleEntry,'id'>={name,day,startPeriod:period,endPeriod:period,weeks};
               if(teacher)draft.teacher=teacher;
               if(location)draft.location=location;
@@ -304,15 +315,25 @@ export default {
           }
         }
       }
-      drafts.sort((x,y)=>x.day-y.day||x.startPeriod-y.startPeriod||x.name.localeCompare(y.name));
+      // 合并连续节次：先按（星期, 课程, 教师, 教室, 周次）分组、组内按起始节排序再并段——
+      // 旧的「挨着上一条就并」依赖全局排序，同节多课（不同教室）交错时会打断合并。
       const merged:Array<Omit<ScheduleEntry,'id'>>=[];
-      for(const draft of drafts){
-        const prev=merged[merged.length-1];
-        if(prev&&prev.day===draft.day&&prev.endPeriod+1===draft.startPeriod&&
-          prev.name===draft.name&&(prev.teacher??'')===(draft.teacher??'')&&
-          (prev.location??'')===(draft.location??'')&&prev.weeks.join(',')===draft.weeks.join(','))
-          prev.endPeriod=draft.endPeriod;
-        else merged.push({...draft,weeks:[...draft.weeks]});
+      {
+        const groups=new Map<string,Array<Omit<ScheduleEntry,'id'>>>();
+        for(const draft of drafts){
+          const key=[draft.day,draft.name,draft.teacher??'',draft.location??'',draft.weeks.join(',')].join('\u0001');
+          const arr=groups.get(key);
+          if(arr)arr.push(draft);else groups.set(key,[draft]);
+        }
+        for(const arr of groups.values()){
+          arr.sort((x,y)=>x.startPeriod-y.startPeriod);
+          let cur:Omit<ScheduleEntry,'id'>|null=null;
+          for(const draft of arr){
+            if(cur&&cur.endPeriod+1===draft.startPeriod)cur.endPeriod=draft.endPeriod;
+            else{cur={...draft,weeks:[...draft.weeks]};merged.push(cur);}
+          }
+        }
+        merged.sort((x,y)=>x.day-y.day||x.startPeriod-y.startPeriod||x.name.localeCompare(y.name)||String(x.location??'').localeCompare(String(y.location??'')));
       }
       const entries=merged.map((e,i)=>({...e,id:`e${i+1}`}));
       return ok<Schedule>({termId:a.termId,maxWeeks,entries});

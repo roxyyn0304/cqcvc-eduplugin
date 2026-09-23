@@ -1,2 +1,4 @@
 promat.md
 *.env
+tools/credentials.env
+credentials.env
