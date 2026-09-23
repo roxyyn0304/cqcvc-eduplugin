@@ -47,7 +47,7 @@
 2. Open the App → Advanced tools → Import the plugin package
 3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
-> ⛔ **Current status**: the stock app's plugin channel sends a hardcoded User-Agent that the school's WAF rejects (403), so it cannot run until the upstream fix lands; **a Plan A self-built build is verified working on a real device** (see Verification layers under Notes). See [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28).
+> ⛔ **Current status**: the stock app has two on-device blockers (plugin-channel UA rejected by the school WAF with 403 + HyperOS killing the isolated sandbox process), so it cannot run until the upstream fixes land; **a Plan A self-built build is verified logging in successfully on a real device** (dual patch: UA + `isolatedProcess`, see Notes). The UA gap is tracked in [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28).
 
 ### Build from source (developers)
 
@@ -113,9 +113,10 @@ The probe is strictly read-only (login + queries); output contains only status c
 ## ⚠️ Notes
 
 - ⛔ **Real-device blocker (host UA)**: the app's `PluginHost.kt` hardcodes `User-Agent: ZhengfangAcademicPlugin/1`, and the school's WAF returns 403 for that UA (browser UA measured 200 on the same endpoint/session — UA was the only difference). Plugins cannot override it; the proposed fix is tracked in [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) (manifest-declared `userAgent`); **a self-built browser-UA build (Plan A) is confirmed working on a real device**
+- ⚠️ **Real-device pitfall #2 (worked around in the personal build)**: HyperOS kills a freshly spawned `android:isolatedProcess` sandbox process (~0.6s after start, `isolated not needed`) *before* the service publishes, so `onServiceConnected` never arrives and `withTimeout(10_000)` reports "插件调用超时" (plugin call timeout). The personal build removes `isolatedProcess` from the manifest (keeping the `:academic_plugin` separate process, dropping only the isolated UID); after the fix a single bind stays alive and login succeeds. An upstream fix will be proposed separately
 - 🚧 **Not implemented**: the entire `selection.*` group (drop/selection protocol undocumented — omitted per the all-or-nothing group rule) and `study.gradeDetails` (no interface sample)
 - 🔒 **Security**: credentials never enter source code, samples, logs or chat; all test fixtures are fictional and redacted; the probe is read-only with no mutations
-- ✅ **Verification layers**: offline samples pass (14/14) → live protocol verified (2026-09-23) → **on-device login chain passed (2026-09-23, Plan A custom build: `auth.start` four requests at 200/302, zero 403, identity restored)** → main UI pages & session expiry pending
+- ✅ **Verification layers**: offline samples pass (14/14) → live protocol verified (2026-09-23) → **on-device main-UI login succeeded (2026-09-23, Plan A dual patch: browser UA past the WAF + `isolatedProcess` removed to dodge the HyperOS kill; log evidence: single bind, zero kills, zero timeouts)** → schedule/grades/exams pages & session expiry pending
 - 📜 For learning and personal use only; comply with your school's rules and applicable laws
 
 ## 🙏 Acknowledgements
