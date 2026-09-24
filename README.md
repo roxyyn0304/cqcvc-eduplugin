@@ -47,7 +47,7 @@
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
-> ✅ **当前状态**：UA 缺口已由官方修复——App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件 v1.0.5 已声明实测放行的浏览器标识，**原版 App 可直接使用**。仅 HyperOS 设备仍受「击杀隔离沙箱进程」影响（上游未修，见「⚠️ 注意事项」；自用包 `zhengfang-1.0.87-hyperos-fix.apk` 已于 2026-09-24 真机复验通过，全套页面验收正常）。
+> ✅ **当前状态**：UA 缺口已由官方修复——App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件 v1.0.5 已声明实测放行的浏览器标识，**原版 App 的 UA 已开箱可用**。但「击杀隔离沙箱进程」（坑2）上游未修，且**不限 HyperOS——官方原版在小米（HyperOS）与 Realme 上均复现超时**（见「⚠️ 注意事项」）；自用包 `zhengfang-1.0.87-hyperos-fix.apk`（清单改动、设备无关）已于 2026-09-24 小米真机全套验收通过，Realme 装同一包待复验。
 
 ### 源码构建（推荐，本项目以编译教程为主）
 
@@ -112,7 +112,7 @@ node tools/live-probe.mjs --analyze ./credentials.env
 ## ⚠️ 注意事项
 
 - ✅ **宿主 UA（已适配）**：本校 WAF 按浏览器 UA 特征放行（实测同端点同会话仅 UA 不同：浏览器 UA 200、`ZhengfangAcademicPlugin/1` 403，登录 POST 用浏览器 UA 返回 `302 → /admin`）。App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件 v1.0.5 在 `school.userAgent` 声明与真实探测一致的 Edge/Windows 浏览器标识（**声明原因即上述 WAF 放行需求，附实测 200/403 对比**）；离线 25 条 HTTP 样本均断言宿主最终发出的 UA。⚠️ 旧版 App 的严格 Schema 会拒绝该字段，**需 App ≥ v1.0.84**
-- ⚠️ **真机坑2（已由自用包规避）**：HyperOS 会在服务发布前以 `isolated not needed` 击杀新拉起的 `android:isolatedProcess` 沙箱进程（启动后 ~0.6 秒必死），客户端永远等不到 `onServiceConnected`，绑定 `withTimeout(10_000)` 到点报「插件调用超时」。自用包清单已移除 `isolatedProcess`（保留 `:academic_plugin` 独立进程，仅放弃隔离 UID），修复后单次绑定稳定运行、登录成功；上游修复建议另行反馈
+- ⚠️ **真机坑2（已由自用包规避）**：宿主以 `android:isolatedProcess` 拉起的沙箱进程会在服务发布**前**被系统击杀（小米 HyperOS 上有 `isolated not needed` 日志，启动后 ~0.6 秒必死），客户端永远等不到 `onServiceConnected`，绑定 `withTimeout(10_000)` 到点报「插件调用超时」。**2026-09-24 补充：官方原版在 Realme 手机上同样复现——非 HyperOS 独有**（多机型通病；Realme 未采日志，击杀机制待证实、症状一致）。自用包清单已移除 `isolatedProcess`（保留 `:academic_plugin` 独立进程，仅放弃隔离 UID），**清单改动与设备无关**：小米已真机全套复验通过，Realme 装同一包待验；上游修复建议另行反馈（多 OEM 证据已足）
 - 🚧 **未实现**：`selection.*` 选退课整组（缺提交协议，按整组覆盖规则省略）、`study.gradeDetails`（无接口样本）
 - 🔒 **安全**：凭据不进入源码、样本、日志与对话；测试样本全部虚构脱敏；探测全程只读、无任何写入操作
 - ✅ **验证分层**：离线样本通过（15/15，25 条 HTTP 样本均断言 UA）→ 真实协议验证通过（2026-09-23，周次贴合 38/38、未用行 0）→ **真机主界面登录成功（2026-09-23，方案A 双补丁：浏览器 UA 过 WAF + 移除 `isolatedProcess` 避开 HyperOS 击杀；日志证据：单次绑定、零击杀、零超时；官方 UA 修复后 v1.0.5 的清单声明即可替代 UA 补丁）** → **真机全套验收通过（2026-09-24，v1.0.5 + `zhengfang-1.0.87-hyperos-fix` 自用包：超时消失，课表/成绩/考试三页与会话全部正常）**
