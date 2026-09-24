@@ -6,6 +6,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -17,6 +18,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "body": "{}",
         "response": {
@@ -40,6 +42,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -51,6 +54,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "response": {
           "status": 302,
@@ -62,6 +66,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "body": "{}",
         "response": {
@@ -85,6 +90,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -96,6 +102,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "response": {
           "status": 200,
@@ -126,6 +133,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/qbcjcx",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -137,6 +145,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -166,6 +175,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -177,6 +187,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "response": {
           "status": 200,
@@ -188,6 +199,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -199,6 +211,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -236,6 +249,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -273,6 +287,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "form": {"page.pn": "1", "page.size": "20", "startXnxq": "2026-2027-1", "endXnxq": "2026-2027-1", "sort": "xnxq", "order": "desc"},
         "response": {
@@ -285,6 +300,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -315,6 +331,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "form": {"page.pn": "2", "page.size": "20", "startXnxq": "2026-2027-1", "endXnxq": "2026-2027-1", "sort": "xnxq", "order": "desc"},
         "response": {
@@ -327,6 +344,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -346,6 +364,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "form": {
           "queryFields": "id,kspcmc,xh,xm,kcmc,kssj,jsmc,ksfs,ksxs,zwh,bkcs,bz,rwbz,",
@@ -382,6 +401,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "form": {
           "queryFields": "id,kspcmc,xh,xm,kcmc,kssj,jsmc,ksfs,ksxs,zwh,bkcs,bz,rwbz,",
@@ -415,6 +435,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 302,
@@ -434,6 +455,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -445,6 +467,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "POST",
         "response": {
           "status": 200,
@@ -456,6 +479,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,
@@ -467,6 +491,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
         "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "method": "GET",
         "response": {
           "status": 200,

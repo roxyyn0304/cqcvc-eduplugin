@@ -38,7 +38,7 @@
 
 | 角色 | 需要 |
 |------|------|
-| 使用插件 | Android 正方教务 App + `.eduplugin` 安装包（⚠️ 见「注意事项」中的 UA 限制） |
+| 使用插件 | Android 正方教务 App ≥ v1.0.84 + `.eduplugin` 安装包（清单 UA 声明需新版宿主，见「注意事项」） |
 | 开发调试 | Node.js ≥ 20 + [plugin-starter-v3 开发套件](https://plugins.hidisiwa.xyz/downloads/plugin-starter-v3.zip) |
 
 ### 安装（最简方式）
@@ -47,7 +47,7 @@
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
-> ⛔ **当前状态**：原版 App 存在两处真机阻塞（插件通道 UA 被学校 WAF 403 + HyperOS 击杀隔离沙箱进程），上游修复合并前不可用；**方案A 自改包已真机验证登录成功**（UA + `isolatedProcess` 双补丁，见「⚠️ 注意事项」）。UA 缺口见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)。
+> ✅ **当前状态**：UA 缺口已由官方修复——App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件 v1.0.5 已声明实测放行的浏览器标识，**原版 App 可直接使用**。仅 HyperOS 设备仍受「击杀隔离沙箱进程」影响（上游未修，见「⚠️ 注意事项」；此前方案A 自改包已真机验证登录成功）。
 
 ### 源码构建（推荐，本项目以编译教程为主）
 
@@ -111,17 +111,17 @@ node tools/live-probe.mjs --analyze ./credentials.env
 
 ## ⚠️ 注意事项
 
-- ⛔ **真机阻塞（宿主 UA）**：App 的 `PluginHost.kt` 把 User-Agent 固定为 `ZhengfangAcademicPlugin/1`，学校 WAF 对该 UA 返回 403（实测浏览器 UA 为 200，同端点同会话仅 UA 不同）。插件侧无法覆盖，修复方案见 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)（建议清单声明 `userAgent`）；**方案A 自改包（浏览器 UA）真机实测已放行**
+- ✅ **宿主 UA（已适配）**：本校 WAF 按浏览器 UA 特征放行（实测同端点同会话仅 UA 不同：浏览器 UA 200、`ZhengfangAcademicPlugin/1` 403，登录 POST 用浏览器 UA 返回 `302 → /admin`）。App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件 v1.0.5 在 `school.userAgent` 声明与真实探测一致的 Edge/Windows 浏览器标识（**声明原因即上述 WAF 放行需求，附实测 200/403 对比**）；离线 25 条 HTTP 样本均断言宿主最终发出的 UA。⚠️ 旧版 App 的严格 Schema 会拒绝该字段，**需 App ≥ v1.0.84**
 - ⚠️ **真机坑2（已由自用包规避）**：HyperOS 会在服务发布前以 `isolated not needed` 击杀新拉起的 `android:isolatedProcess` 沙箱进程（启动后 ~0.6 秒必死），客户端永远等不到 `onServiceConnected`，绑定 `withTimeout(10_000)` 到点报「插件调用超时」。自用包清单已移除 `isolatedProcess`（保留 `:academic_plugin` 独立进程，仅放弃隔离 UID），修复后单次绑定稳定运行、登录成功；上游修复建议另行反馈
 - 🚧 **未实现**：`selection.*` 选退课整组（缺提交协议，按整组覆盖规则省略）、`study.gradeDetails`（无接口样本）
 - 🔒 **安全**：凭据不进入源码、样本、日志与对话；测试样本全部虚构脱敏；探测全程只读、无任何写入操作
-- ✅ **验证分层**：离线样本通过（15/15）→ 真实协议验证通过（2026-09-23，周次贴合 38/38、未用行 0）→ **真机主界面登录成功（2026-09-23，方案A 双补丁：浏览器 UA 过 WAF + 移除 `isolatedProcess` 避开 HyperOS 击杀；日志证据：单次绑定、零击杀、零超时）** → 课表/成绩/考试三页与会话过期待验
+- ✅ **验证分层**：离线样本通过（15/15，25 条 HTTP 样本均断言 UA）→ 真实协议验证通过（2026-09-23，周次贴合 38/38、未用行 0）→ **真机主界面登录成功（2026-09-23，方案A 双补丁：浏览器 UA 过 WAF + 移除 `isolatedProcess` 避开 HyperOS 击杀；日志证据：单次绑定、零击杀、零超时；官方 UA 修复后 v1.0.5 的清单声明即可替代 UA 补丁）** → 课表/成绩/考试三页与会话过期待验
 - 📜 本项目仅供学习与个人使用，请遵守学校规定与相关法律法规
 
 ## 🙏 致谢
 
 - [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) 逆向接口文档——协议样本来源
-- [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) App 本体与插件架构（宿主缺口已提交 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28)）
+- [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) App 本体与插件架构（宿主 UA 缺口 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已在 App v1.0.84 修复）
 - [插件开发者文档](https://plugins.hidisiwa.xyz/developers) 与 plugin-starter-v3 开发套件
 
 ## 📄 License

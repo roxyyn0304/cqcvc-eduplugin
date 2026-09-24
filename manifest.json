@@ -1,7 +1,7 @@
 {
   "id": "local.cqcvc",
   "name": "重庆城市职业学院超星教务适配",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "apiVersion": 1,
   "kind": "independent",
   "capabilities": [
@@ -41,7 +41,8 @@
     "domain": "jw.cqcvc.edu.cn",
     "protocol": "https",
     "basePath": "/",
-    "academicSystem": "auto"
+    "academicSystem": "auto",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0"
   },
   "files": {},
   "entry": "index.js",

@@ -2,7 +2,8 @@ import type {AcademicPlugin,Result,ErrorCode,AuthState,Term,Terms,Schedule,Sched
 
 /** 重庆城市职业学院 · 超星综合教学管理系统（jw.cqcvc.edu.cn）独立适配。
  * 协议已于真实账号只读探测验证（见 README「真实验证结论」）；不处理任何写入操作。
- * 已知宿主缺口：学校 WAF 按 UA 拦截，App 固定 ZhengfangAcademicPlugin/1 会被403（PluginHost.kt）。
+ * 本校 WAF 按 UA 拦截（固定 ZhengfangAcademicPlugin/1 实测 403）：已在清单 school.userAgent 声明浏览器标识，
+ * App ≥1.0.84 官方支持（issue #28 已修复），宿主按 网络规则 → 学校 → 默认值 逐次跳转重新取值。
  */
 
 const ORIGIN='https://jw.cqcvc.edu.cn';
