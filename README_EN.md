@@ -47,7 +47,7 @@
 2. Open the App → Advanced tools → Import the plugin package
 3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
-> ✅ **Current status**: the UA gap is officially fixed — App ≥ v1.0.84 lets the manifest declare `school.userAgent` ([issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) resolved), and this plugin v1.0.5 declares the verified browser identity, so **the stock app works out of the box**. Only HyperOS devices remain affected by the "isolated sandbox process kill" (still unfixed upstream — see Notes; the earlier Plan A self-build was verified logging in on a real device).
+> ✅ **Current status**: the UA gap is officially fixed — App ≥ v1.0.84 lets the manifest declare `school.userAgent` ([issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) resolved), and this plugin v1.0.5 declares the verified browser identity, so **the stock app works out of the box**. Only HyperOS devices remain affected by the "isolated sandbox process kill" (still unfixed upstream — see Notes; the self-build `zhengfang-1.0.87-hyperos-fix.apk` was re-verified on a real device on 2026-09-24 with the full page acceptance passing).
 
 ### Build from source (recommended — this project ships a build guide, not releases)
 
@@ -116,7 +116,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 - ⚠️ **Real-device pitfall #2 (worked around in the personal build)**: HyperOS kills a freshly spawned `android:isolatedProcess` sandbox process (~0.6s after start, `isolated not needed`) *before* the service publishes, so `onServiceConnected` never arrives and `withTimeout(10_000)` reports "插件调用超时" (plugin call timeout). The personal build removes `isolatedProcess` from the manifest (keeping the `:academic_plugin` separate process, dropping only the isolated UID); after the fix a single bind stays alive and login succeeds. An upstream fix will be proposed separately
 - 🚧 **Not implemented**: the entire `selection.*` group (drop/selection protocol undocumented — omitted per the all-or-nothing group rule) and `study.gradeDetails` (no interface sample)
 - 🔒 **Security**: credentials never enter source code, samples, logs or chat; all test fixtures are fictional and redacted; the probe is read-only with no mutations
-- ✅ **Verification layers**: offline samples pass (15/15, all 25 HTTP samples assert the UA) → live protocol verified (2026-09-23, week join 38/38 with 0 unused rows) → **on-device main-UI login succeeded (2026-09-23, Plan A dual patch: browser UA past the WAF + `isolatedProcess` removed to dodge the HyperOS kill; log evidence: single bind, zero kills, zero timeouts; with the official UA fix, the v1.0.5 manifest declaration replaces the UA patch)** → schedule/grades/exams pages & session expiry pending
+- ✅ **Verification layers**: offline samples pass (15/15, all 25 HTTP samples assert the UA) → live protocol verified (2026-09-23, week join 38/38 with 0 unused rows) → **on-device main-UI login succeeded (2026-09-23, Plan A dual patch: browser UA past the WAF + `isolatedProcess` removed to dodge the HyperOS kill; log evidence: single bind, zero kills, zero timeouts; with the official UA fix, the v1.0.5 manifest declaration replaces the UA patch)** → **full on-device acceptance passed (2026-09-24, v1.0.5 + the `zhengfang-1.0.87-hyperos-fix` self-build: timeout gone; schedule/grades/exams pages and session all working)**
 - 📜 For learning and personal use only; comply with your school's rules and applicable laws
 
 ## 🙏 Acknowledgements
