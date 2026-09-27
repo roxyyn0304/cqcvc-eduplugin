@@ -2,3 +2,8 @@ promat.md
 *.env
 tools/credentials.env
 credentials.env
+
+# 草稿/一次性过程文档不入库（内容发布后以 GitHub issue 正文为准，需要模板从 issue 复制）
+drafts/
+*.draft.md
+tools/issue-*.md
