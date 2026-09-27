@@ -1,8 +1,8 @@
 {
   "id": "local.cqcvc",
   "name": "重庆城市职业学院超星教务适配",
-  "version": "1.0.5",
-  "apiVersion": 1,
+  "version": "1.0.6",
+  "apiVersion": 3,
   "kind": "independent",
   "capabilities": [
     "auth.start",
@@ -46,5 +46,13 @@
   },
   "files": {},
   "entry": "index.js",
-  "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配：登录、学期、课表、作息、成绩与考试查询。协议依据公开逆向文档整理，测试样本均为脱敏虚构数据，不含任何真实账号信息。"
+  "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配。协议依据公开逆向文档整理，测试样本均为脱敏虚构数据，不含任何真实账号信息。",
+  "features": [
+    "超星教务登录（RSA 加密）",
+    "学期列表与当前学期",
+    "周课表（含断周课程周次）",
+    "上课作息时间表",
+    "成绩与绩点查询",
+    "考试安排查询"
+  ]
 }
