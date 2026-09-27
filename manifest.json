@@ -46,7 +46,8 @@
   },
   "files": {},
   "entry": "index.js",
-  "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配。协议依据公开逆向文档整理，测试样本均为脱敏虚构数据，不含任何真实账号信息。",
+  "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配。作者：洛宁宁；在IQOO，realme，xiaomi手机上完美运行。协议依据公开逆向文档整理，测试样本均为脱敏虚构数据，不含任何真实账号信息。",
+  "releaseNotes": "最新版本在Github，插件中心不一定是最新版本",
   "features": [
     "超星教务登录（RSA 加密）",
     "学期列表与当前学期",
