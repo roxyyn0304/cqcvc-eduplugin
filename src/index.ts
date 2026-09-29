@@ -136,6 +136,15 @@ const readIdentity=async(s:HostSdk):Promise<{studentId:string;studentName:string
   }catch{return null;}
 };
 
+/** 学期显示名：2026-2027-1 → 2026-2027 第一学期（id 仍用原始 value，接口参数依赖它）。 */
+const formatTermName=(v:string):string=>{
+  const m=/^(\d{4}-\d{4})-(\d+)$/.exec(v);
+  if(!m)return v;
+  const n=Number(m[2]);
+  const label=n===1?'一':n===2?'二':String(n);
+  return `${m[1]} 第${label}学期`;
+};
+
 /** 学期列表：成绩页框架 select#startXnxq 的下拉选项即学年学期（value=2026-2027-1 形态，已真实验证）。 */
 const fetchTermItems=async(s:HostSdk):Promise<{ok:true;items:Term[]}|{ok:false;error:{code:ErrorCode;message:string}}>=>{
   let res:HttpResponse;
@@ -153,7 +162,7 @@ const fetchTermItems=async(s:HostSdk):Promise<{ok:true;items:Term[]}|{ok:false;e
     const value=m[1].trim();
     if(/^\d{4}-\d{4}-\d+$/.test(value)&&!seen.has(value)){
       seen.add(value);
-      const term:Term={id:value,name:value};
+      const term:Term={id:value,name:formatTermName(value)};
       const y=/^(\d{4})-(\d{4})-(\d+)$/.exec(value);
       if(y){term.year=Number(y[1]);term.semester=Math.min(12,Number(y[3]));}
       items.push(term);

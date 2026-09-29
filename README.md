@@ -47,7 +47,7 @@
 2. 打开 App → 高级工具 → 导入插件安装包
 3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
-> ✅ **当前状态（v1.0.6 / API 3）**：清单已迁移到 `apiVersion: 3`（SDK 3.2.1），进入 `/academic-plugins-v3/` 与 v2 目录通道，同时**保持 1.0.87 客户端兼容**（87 兼容通道 `[3, 32]`——这是有意为之：1.0.87 宿主的严格 Schema 拒绝 `license`/`minAppVersionCode` 等 3.2 新字段，而主人的自用包正是 1.0.87 基线），运行代码与 1.0.5 完全一致、离线 15/15 复验通过（**v1.0.6 未重新真机验收**，仅清单元数据变更）。UA 缺口已由官方修复——App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件自 v1.0.5 起声明实测放行的浏览器标识，**原版 App 的 UA 已开箱可用**。但「击杀隔离沙箱进程」（坑2）上游未修，且**不限 HyperOS——官方原版在小米（HyperOS）与 Realme 上均复现超时**（见「⚠️ 注意事项」）；自用包 `zhengfang-1.0.87-hyperos-fix.apk`（清单改动、设备无关）已于 2026-09-24 **小米 + Realme 双机真机验收全部通过**。
+> ✅ **当前状态（v1.0.7 / API 3）**：学期列表显示名改为友好格式「2026-2027 第一学期」（`id` 保持原始 `2026-2027-1`，成绩/课表接口参数不变），并已在 **SDK 3.2.4** 下 check / 离线 15/15 / submit-check 全绿重打包（**v1.0.7 未重新真机验收**，仅显示名与构建基线变更）。清单 `apiVersion: 3`（SDK 3.2.1 迁移），进入 `/academic-plugins-v3/` 与 v2 目录通道，同时**保持 1.0.87 客户端兼容**（87 兼容通道 `[3, 32]`——这是有意为之：1.0.87 宿主的严格 Schema 拒绝 `license`/`minAppVersionCode` 等 3.2 新字段，而主人的自用包正是 1.0.87 基线）。UA 缺口已由官方修复——App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件自 v1.0.5 起声明实测放行的浏览器标识，**原版 App 的 UA 已开箱可用**。但「击杀隔离沙箱进程」（坑2）上游未修，且**不限 HyperOS——官方原版在小米（HyperOS）与 Realme 上均复现超时**（见「⚠️ 注意事项」）；自用包 `zhengfang-1.0.87-hyperos-fix.apk`（清单改动、设备无关）已于 2026-09-24 **小米 + Realme 双机真机验收全部通过**。
 
 ### 源码构建（推荐，本项目以编译教程为主）
 
