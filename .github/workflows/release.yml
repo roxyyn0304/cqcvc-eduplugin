@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  STARTER_URL: https://plugins.hidisiwa.xyz/downloads/plugin-starter-v3.zip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag '$GITHUB_REF_NAME' is not vX.Y.Z" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Sync manifest version
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("manifest.json","utf8"));m.version=process.env.VERSION;fs.writeFileSync("manifest.json",JSON.stringify(m,null,2)+"\n")'
+
+      - name: Download development suite
+        shell: bash
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/starter.zip" "$STARTER_URL"
+          mkdir -p "$RUNNER_TEMP/starter"
+          unzip -q "$RUNNER_TEMP/starter.zip" -d "$RUNNER_TEMP/starter"
+          cp -R "$GITHUB_WORKSPACE" "$RUNNER_TEMP/starter/plugins/cqcvc"
+
+      - name: Install suite dependencies
+        working-directory: ${{ runner.temp }}/starter
+        run: npm ci
+
+      - name: Check
+        working-directory: ${{ runner.temp }}/starter
+        run: npm run plugin -- check cqcvc
+
+      - name: Test
+        working-directory: ${{ runner.temp }}/starter
+        run: npm run plugin -- test cqcvc
+
+      - name: Pack
+        working-directory: ${{ runner.temp }}/starter
+        run: |
+          npm run plugin -- pack cqcvc
+          npm run plugin -- source-zip cqcvc
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ runner.temp }}/starter/dist/local.cqcvc-${{ steps.version.outputs.version }}.eduplugin
+            ${{ runner.temp }}/starter/dist/local.cqcvc-${{ steps.version.outputs.version }}-source.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
