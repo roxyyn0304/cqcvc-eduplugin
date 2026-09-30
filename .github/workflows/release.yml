@@ -64,15 +64,11 @@ jobs:
 
       - name: Pack
         working-directory: ${{ runner.temp }}/starter
-        run: |
-          npm run plugin -- pack cqcvc
-          npm run plugin -- source-zip cqcvc
+        run: npm run plugin -- pack cqcvc
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            ${{ runner.temp }}/starter/dist/local.cqcvc-${{ steps.version.outputs.version }}.eduplugin
-            ${{ runner.temp }}/starter/dist/local.cqcvc-${{ steps.version.outputs.version }}-source.zip
+          files: ${{ runner.temp }}/starter/dist/local.cqcvc-${{ steps.version.outputs.version }}.eduplugin
           token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_unmatched_files: true

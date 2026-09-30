@@ -43,13 +43,15 @@
 
 ### Installation (easiest way)
 
-1. Download the `.eduplugin` package from the [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) page (this project does **not** publish routine releases — if no package is available, build it from source with the guide below)
-2. Open the App → Advanced tools → Import the plugin package
-3. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
+1. Download the `.eduplugin` package from the [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) page
+2. Open the App → Plugin Center → "⋯" (top-right) → "导入、回滚与开发工具" (Import, rollback & developer tools), and turn on the **"开发者模式" (Developer mode)** switch
+   - ⚠️ **Required**: the Releases package is built by GitHub Actions and carries **no official signature**. With developer mode off, the import fails with "签名无效或签名密钥未受信任" (invalid or untrusted signature). The Plugin Center's "从文件安装" (Install from file) menu runs the strict verification path and rejects unsigned packages too — you must enter through "导入、回滚与开发工具". The switch footer states "开发模式允许导入未签名的本地包，请仅使用可信来源" (development mode allows importing unsigned local packages; use trusted sources only).
+3. On the same page, tap **"导入适配包" (Import adapter package)** and pick the downloaded `.eduplugin` file
+4. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
 > ✅ **Current status (v1.0.7 / API 3)**: term names now render in the friendly form "2026-2027 第一学期" (`id` stays the raw `2026-2027-1`, so grade/schedule API parameters are unchanged), re-packed under **SDK 3.2.4** with check / 15 offline samples / submit-check all green (**v1.0.7 has not been re-accepted on device** — display name and build baseline only). The manifest declares `apiVersion: 3` (migrated under SDK 3.2.1), shipping to the `/academic-plugins-v3/` and v2 catalog channels while **staying compatible with 1.0.87 clients** (legacy channel `[3, 32]` — intentional: the 1.0.87 host's strict schema rejects 3.2-only fields such as `license`/`minAppVersionCode`, and the self-built app on the phones is a 1.0.87 baseline). The UA gap is officially fixed — App ≥ v1.0.84 lets the manifest declare `school.userAgent` ([issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) resolved), and since v1.0.5 this plugin declares the verified browser identity, so **the stock app's UA works out of the box**. However, the "isolated sandbox process kill" (pitfall #2) is still unfixed upstream and is **not HyperOS-specific — the stock app reproduces the timeout on both Xiaomi (HyperOS) and Realme** (see Notes); the self-build `zhengfang-1.0.87-hyperos-fix.apk` (a device-independent manifest change) passed full on-device acceptance on **both Xiaomi and Realme** on 2026-09-24.
 
-### Build from source (recommended — this project ships a build guide, not releases)
+### Build from source (recommended)
 
 ```bash
 git clone https://github.com/roxyyn0304/cqcvc-eduplugin.git

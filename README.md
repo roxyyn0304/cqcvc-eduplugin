@@ -43,13 +43,15 @@
 
 ### 安装（最简方式）
 
-1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 页面下载 `.eduplugin` 安装包（本项目**不做例行发版**，页面没有现成包时按下方「源码构建」自行编译即可）
-2. 打开 App → 高级工具 → 导入插件安装包
-3. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
+1. 从 [Releases](https://github.com/roxyyn0304/cqcvc-eduplugin/releases) 页面下载 `.eduplugin` 安装包
+2. 打开 App → 插件中心 → 右上角「⋯」→「导入、回滚与开发工具」，**打开「开发者模式」开关**
+   - ⚠️ **必须开启**：Releases 下载的安装包由 GitHub Actions 构建，**没有官方签名认证**，开发者模式关闭时导入会报「签名无效或签名密钥未受信任」；插件中心菜单里的「从文件安装」走正式校验路径，同样会拒绝未签名包，**必须从「导入、回滚与开发工具」进入**。开关页脚也注明了「开发模式允许导入未签名的本地包，请仅使用可信来源」
+3. 在同一页面点「**导入适配包**」，选择刚下载的 `.eduplugin` 文件
+4. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
 > ✅ **当前状态（v1.0.7 / API 3）**：学期列表显示名改为友好格式「2026-2027 第一学期」（`id` 保持原始 `2026-2027-1`，成绩/课表接口参数不变），并已在 **SDK 3.2.4** 下 check / 离线 15/15 / submit-check 全绿重打包（**v1.0.7 未重新真机验收**，仅显示名与构建基线变更）。清单 `apiVersion: 3`（SDK 3.2.1 迁移），进入 `/academic-plugins-v3/` 与 v2 目录通道，同时**保持 1.0.87 客户端兼容**（87 兼容通道 `[3, 32]`——这是有意为之：1.0.87 宿主的严格 Schema 拒绝 `license`/`minAppVersionCode` 等 3.2 新字段，而主人的自用包正是 1.0.87 基线）。UA 缺口已由官方修复——App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件自 v1.0.5 起声明实测放行的浏览器标识，**原版 App 的 UA 已开箱可用**。但「击杀隔离沙箱进程」（坑2）上游未修，且**不限 HyperOS——官方原版在小米（HyperOS）与 Realme 上均复现超时**（见「⚠️ 注意事项」）；自用包 `zhengfang-1.0.87-hyperos-fix.apk`（清单改动、设备无关）已于 2026-09-24 **小米 + Realme 双机真机验收全部通过**。
 
-### 源码构建（推荐，本项目以编译教程为主）
+### 源码构建（推荐）
 
 ```bash
 git clone https://github.com/roxyyn0304/cqcvc-eduplugin.git
