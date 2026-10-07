@@ -8,7 +8,7 @@
 
 - **为谁做**：重庆城市职业学院（`jw.cqcvc.edu.cn`）学生——本校使用**超星综合教学管理系统**，与 App 内置的正方/青果适配不兼容，无法开箱即用
 - **是什么**：`kind: independent` 独立教务插件，登录、课表、成绩等协议全部在插件内实现，**不改 APK**，可单独迭代、单独上架
-- **技术栈**：TypeScript → QuickJS 沙箱执行、教务 API v3 契约（SDK 3.2.1）、官方 [plugin-starter-v3 开发套件](https://plugins.hidisiwa.xyz/developers)
+- **技术栈**：TypeScript → QuickJS 沙箱执行、教务 API v3 契约（SDK 3.2.9）、官方 [plugin-starter-v3 开发套件](https://plugins.hidisiwa.xyz/developers)
 - **来源**：模板改造自官方 `mock-school`；接口协议来自 [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) 逆向文档
 ## ✨ 功能特性
 
@@ -38,7 +38,7 @@
 
 | 角色 | 需要 |
 |------|------|
-| 使用插件 | Android 正方教务 App ≥ v1.0.84 + `.eduplugin` 安装包（清单 UA 声明需新版宿主，见「注意事项」） |
+| 使用插件 | Android 正方教务 App ≥ v1.0.84 + `.eduplugin` 安装包（清单声明 `school.userAgent`，旧版宿主会拒绝该字段） |
 | 开发调试 | Node.js ≥ 20 + [plugin-starter-v3 开发套件](https://plugins.hidisiwa.xyz/downloads/plugin-starter-v3.zip) |
 
 ### 安装（最简方式）
@@ -49,14 +49,17 @@
 3. 在同一页面点「**导入适配包**」，选择刚下载的 `.eduplugin` 文件
 4. 匹配到 `jw.cqcvc.edu.cn` 后，用学号密码登录
 
-> ✅ **当前状态（v1.0.7 / API 3）**：学期列表显示名改为友好格式「2026-2027 第一学期」（`id` 保持原始 `2026-2027-1`，成绩/课表接口参数不变），并已在 **SDK 3.2.4** 下 check / 离线 15/15 / submit-check 全绿重打包（**v1.0.7 未重新真机验收**，仅显示名与构建基线变更）。清单 `apiVersion: 3`（SDK 3.2.1 迁移），进入 `/academic-plugins-v3/` 与 v2 目录通道，同时**保持 1.0.87 客户端兼容**（87 兼容通道 `[3, 32]`——这是有意为之：1.0.87 宿主的严格 Schema 拒绝 `license`/`minAppVersionCode` 等 3.2 新字段，而主人的自用包正是 1.0.87 基线）。UA 缺口已由官方修复——App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件自 v1.0.5 起声明实测放行的浏览器标识，**原版 App 的 UA 已开箱可用**。但「击杀隔离沙箱进程」（坑2）上游未修，且**不限 HyperOS——官方原版在小米（HyperOS）与 Realme 上均复现超时**（见「⚠️ 注意事项」）；自用包 `zhengfang-1.0.87-hyperos-fix.apk`（清单改动、设备无关）已于 2026-09-24 **小米 + Realme 双机真机验收全部通过**。
+> ✅ **当前状态（v1.0.7 / API 3 / SDK 3.2.9）**：
+> - **学期显示名**：改为友好格式「2026-2027 第一学期」（`id` 保持原始 `2026-2027-1`，成绩/课表接口参数不变）。v1.0.7 当时在 **SDK 3.2.4** 下 check / 离线 15/15 / submit-check 全绿重打包，**2026-10-07 已在最新 SDK 3.2.9 开发套件下复验全绿（含打包）**（**v1.0.7 未重新真机验收**，仅显示名与构建基线变更）。
+> - **清单 `apiVersion: 3`**（SDK 3.2.1 迁移）：进入 `/academic-plugins-v3/` 与 v2 目录通道，并**保持 1.0.87 客户端兼容**——87 兼容通道 `[3, 32]` 是有意为之：1.0.87 宿主的严格 Schema 拒绝 `license`/`minAppVersionCode` 等 3.2 新字段，自用包正是 1.0.87 基线。
 
 ### 源码构建（推荐）
 
 ```bash
 git clone https://github.com/roxyyn0304/cqcvc-eduplugin.git
-# 将本仓库放入开发套件的 plugins/ 目录，命名为 cqcvc：
-#   plugin-starter-v3/plugins/cqcvc/
+# 开发套件 plugin-starter-v3.zip（见「环境要求」）解压到当前目录后，将本仓库放入其 plugins/ 并命名为 cqcvc：
+unzip plugin-starter-v3.zip -d plugin-starter-v3
+cp -R cqcvc-eduplugin plugin-starter-v3/plugins/cqcvc
 cd plugin-starter-v3
 npm ci                # 国内网络可加镜像：--registry=https://registry.npmmirror.com
 npm run plugin -- check cqcvc   # 清单与类型检查
@@ -113,17 +116,19 @@ node tools/live-probe.mjs --analyze ./credentials.env
 
 ## ⚠️ 注意事项
 
-- ✅ **宿主 UA（已适配）**：本校 WAF 按浏览器 UA 特征放行（实测同端点同会话仅 UA 不同：浏览器 UA 200、`ZhengfangAcademicPlugin/1` 403，登录 POST 用浏览器 UA 返回 `302 → /admin`）。App ≥ v1.0.84 起清单可声明 `school.userAgent`（[issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已修复），本插件自 v1.0.5 起在 `school.userAgent` 声明与真实探测一致的 Edge/Windows 浏览器标识（**声明原因即上述 WAF 放行需求，附实测 200/403 对比**）；离线 25 条 HTTP 样本均断言宿主最终发出的 UA。⚠️ 旧版 App 的严格 Schema 会拒绝该字段，**需 App ≥ v1.0.84**
-- ⚠️ **真机坑2（已由自用包规避）**：宿主以 `android:isolatedProcess` 拉起的沙箱进程会在服务发布**前**被系统击杀（小米 HyperOS 上有 `isolated not needed` 日志，启动后 ~0.6 秒必死），客户端永远等不到 `onServiceConnected`，绑定 `withTimeout(10_000)` 到点报「插件调用超时」。**2026-09-24 补充：官方原版在 Realme 手机上同样复现——非 HyperOS 独有**（多机型通病；Realme 未采日志，击杀机制待证实、症状一致）。自用包清单已移除 `isolatedProcess`（保留 `:academic_plugin` 独立进程，仅放弃隔离 UID），**清单改动与设备无关**：小米与 Realme 双机均已复验通过（2026-09-24）；已提上游 [issue #30](https://github.com/znjhahaha/zhengfang-apk/issues/30)（两 OEM 复现 + 双机修复验证，证据已足）
 - 🚧 **未实现**：`selection.*` 选退课整组（缺提交协议，按整组覆盖规则省略）、`study.gradeDetails`（无接口样本）
 - 🔒 **安全**：凭据不进入源码、样本、日志与对话；测试样本全部虚构脱敏；探测全程只读、无任何写入操作
-- ✅ **验证分层**：离线样本通过（15/15，25 条 HTTP 样本均断言 UA）→ 真实协议验证通过（2026-09-23，周次贴合 38/38、未用行 0）→ **真机主界面登录成功（2026-09-23，方案A 双补丁：浏览器 UA 过 WAF + 移除 `isolatedProcess` 避开 HyperOS 击杀；日志证据：单次绑定、零击杀、零超时；官方 UA 修复后 v1.0.5 的清单声明即可替代 UA 补丁）** → **真机全套验收通过（2026-09-24，v1.0.5 + `zhengfang-1.0.87-hyperos-fix` 自用包：超时消失，课表/成绩/考试三页与会话全部正常）**
+- ✅ **验证分层**：
+  1. 离线样本通过（15/15，25 条 HTTP 样本均断言 UA）
+  2. 真实协议验证通过（2026-09-23，周次贴合 38/38、未用行 0）
+  3. 真机主界面登录成功（2026-09-23，日志证据：单次绑定、零超时）
+  4. 真机全套验收通过（2026-09-24，课表/成绩/考试三页与会话全部正常）
 - 📜 本项目仅供学习与个人使用，请遵守学校规定与相关法律法规
 
 ## 🙏 致谢
 
 - [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) 逆向接口文档——协议样本来源
-- [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) App 本体与插件架构（宿主 UA 缺口 [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) 已在 App v1.0.84 修复）
+- [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) App 本体与插件架构
 - [插件开发者文档](https://plugins.hidisiwa.xyz/developers) 与 plugin-starter-v3 开发套件
 
 ## 📄 License

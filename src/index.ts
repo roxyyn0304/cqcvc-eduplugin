@@ -1,11 +1,5 @@
 import type {AcademicPlugin,Result,ErrorCode,AuthState,Term,Terms,Schedule,ScheduleEntry,Calendar,Grade,Grades,Exam,HttpRequest,HttpResponse,HostSdk} from '../../../sdk/index';
 
-/** 重庆城市职业学院 · 超星综合教学管理系统（jw.cqcvc.edu.cn）独立适配。
- * 协议已于真实账号只读探测验证（见 README「真实验证结论」）；不处理任何写入操作。
- * 本校 WAF 按 UA 拦截（固定 ZhengfangAcademicPlugin/1 实测 403）：已在清单 school.userAgent 声明浏览器标识，
- * App ≥1.0.84 官方支持（issue #28 已修复），宿主按 网络规则 → 学校 → 默认值 逐次跳转重新取值。
- */
-
 const ORIGIN='https://jw.cqcvc.edu.cn';
 const LOGIN=`${ORIGIN}/admin/login`;
 const IDENTITY=`${ORIGIN}/admin/xsd/xk/listV2`;
@@ -69,7 +63,6 @@ const parseHttpDate=(s:string):number=>{
   return Date.UTC(Number(m[3]),mon,Number(m[1]),Number(m[4]),Number(m[5]),Number(m[6]));
 };
 
-/** 判断一次响应是否表示「未登录 / 被打回登录页」（兼容302/303 跳转与已跟随两种宿主行为）。 */
 const pointsToLogin=(res:HttpResponse):boolean=>{
   if(res.status>=300&&res.status<400){
     const loc=headerOf(res,'location');
@@ -82,7 +75,6 @@ const pointsToLogin=(res:HttpResponse):boolean=>{
 
 type JsonReply={ok:true;payload:any;res:HttpResponse}|{ok:false;error:{code:ErrorCode;message:string}};
 
-/** 发起一次受控请求并解析 JSON；网络/HTTP/解析错误统一转成协议错误。 */
 const fetchJson=async(s:HostSdk,req:HttpRequest):Promise<JsonReply>=>{
   let res:HttpResponse;
   try{res=await s.http(req);}catch{return{ok:false,error:{code:'NETWORK_RETRYABLE',message:'网络请求未完成'}};}
@@ -90,7 +82,7 @@ const fetchJson=async(s:HostSdk,req:HttpRequest):Promise<JsonReply>=>{
   try{return{ok:true,payload:JSON.parse(res.body),res};}catch{return{ok:false,error:{code:'VALIDATION_FAILED',message:'服务器返回的数据无法识别'}};}
 };
 
-/** 解析周次字符串，如 "1-16周"、"1-8周,10"、"1-16双周"；缺省视为全学期（本校课表接口不返回周次，回退即网页端行为）。 */
+/** 缺省视为全学期：本校课表接口不返回周次，回退即网页端行为 */
 function parseWeeks(raw:unknown,maxWeeks:number):number[]{
   const cap=Math.min(25,Math.max(1,maxWeeks));
   const all=():number[]=>{const out:number[]=[];for(let w=1;w<=cap;w++)out.push(w);return out;};
@@ -145,7 +137,6 @@ const formatTermName=(v:string):string=>{
   return `${m[1]} 第${label}学期`;
 };
 
-/** 学期列表：成绩页框架 select#startXnxq 的下拉选项即学年学期（value=2026-2027-1 形态，已真实验证）。 */
 const fetchTermItems=async(s:HostSdk):Promise<{ok:true;items:Term[]}|{ok:false;error:{code:ErrorCode;message:string}}>=>{
   let res:HttpResponse;
   try{res=await s.http({url:GRADES_FRAME,method:'GET',purpose:'query',headers:AJAX_HEADERS});}
@@ -175,7 +166,7 @@ const fetchTermItems=async(s:HostSdk):Promise<{ok:true;items:Term[]}|{ok:false;e
 
 export default {
   auth:{
-    /** 表单登录：先取登录页（真实浏览器流程），密码用平台共用 RSA 公钥加密后提交；Cookie 由宿主管理。 */
+    /** 先预取登录页——复刻真实浏览器流程（丢弃其响应属正常）。 */
     start:async(a,c,s)=>{
       try{await s.http({url:LOGIN,method:'GET',purpose:'auth',headers:{'Accept':'text/html'}});}catch{/* 预取失败不阻断登录 */}
       let enc:string;
@@ -192,10 +183,8 @@ export default {
       await s.log('info','cqcvc login succeeded');
       return ok<AuthState>({status:'authenticated',studentId:identity.studentId,studentName:identity.studentName});
     },
-    /** 本校登录不使用验证码或网页续接，续接入口不可达。 */
     resume:()=>err('UNSUPPORTED','本校登录不使用验证码或网页续接'),
     refreshCaptcha:()=>err('UNSUPPORTED','本校登录不需要验证码'),
-    /** 会话校验：探测当前学年学期接口，被重定向到登录页即会话过期。 */
     validate:async(a,c,s)=>{
       let res:HttpResponse;
       try{res=await s.http({url:CURRENT_TERM,method:'GET',purpose:'query',headers:AJAX_HEADERS});}
@@ -212,7 +201,6 @@ export default {
     }
   },
   study:{
-    /** 学期列表：成绩页框架下拉选项 + getCurrentXnxq（真实验证：选项 value 即成绩接口参数格式）。 */
     terms:async(a,c,s)=>{
       const list=await fetchTermItems(s);
       if(!list.ok)return{ok:false,error:list.error};
@@ -228,7 +216,6 @@ export default {
       await s.state.set('cqcvc.termRange',[ids[0],ids[ids.length-1]]);
       return ok<Terms>({items,currentId});
     },
-    /** 课表：getCurrentPkZc 取周数（真实值20），getXsdSykb 取网格 + sdpkkbList 取真周次（教室优先贴合，详见 promat）；周次源不可用时回退全学期。 */
     schedule:async(a,c,s)=>{
       const current=await s.state.get<string>('cqcvc.currentTermId');
       if(current&&a.termId!==current){
@@ -252,7 +239,6 @@ export default {
       if(!scR.ok)return{ok:false,error:scR.error};
       const payload=scR.payload;
       if(Number(payload?.ret)!==0)return err('VALIDATION_FAILED',String(payload?.msg||'课表获取失败'));
-      // 真·周次数据源（与网页课表同源）：课表页隐藏域取 xhid/xqdm → sdpkkbList（行含教室 croommc）
       const skCells:{day:number;period:number;kcmc:string;room:string;weeks:number[]}[]=[];
       try{
         const pageRes=await s.http({url:`${ORIGIN}/admin/pkgl/xskb/queryKbForXsd?xnxq=${encodeURIComponent(a.termId)}&zxzc=&zdzc=&xskbxslx=0`,method:'GET',purpose:'query',headers:{'Accept':'text/html'}});
@@ -281,7 +267,6 @@ export default {
           }
         }
       }catch{/* 周次源不可用 → 各单元回退全学期 */}
-      /** 教室比较前的归一化：去空白 + 全半角括号统一 + 小写。 */
       const normRoom=(v:string):string=>v.replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')').toLowerCase();
       /** 把周次源行贴到网格单元：教室优先——同一格可能有多行（不同教室、不同周次），先到先得会静默丢行。
        * 实测案例：周四第1-2节高数 文华楼125=第15-18周、文华楼521=第4-5周，旧算法取到125行就丢掉521行，第4周课程被漏排。
@@ -348,7 +333,6 @@ export default {
       const entries=merged.map((e,i)=>({...e,id:`e${i+1}`}));
       return ok<Schedule>({termId:a.termId,maxWeeks,entries});
     },
-    /** 作息：本校10 节次时间表为静态配置（已与真实课表 kssj/jssj 逐节核对一致）。 */
     calendar:async(a,c,s)=>{
       // 开学日期（第一周周一）= 服务器 Date 头的本周一 − (dqzc−1) 周；仅当前学期可推算
       const current=await s.state.get<string>('cqcvc.currentTermId');
@@ -375,7 +359,6 @@ export default {
       if(startDate)value.startDate=startDate;
       return ok(value);
     },
-    /** 成绩：jqGrid 分页 + 平均学分绩点；startXnxq/endXnxq 即完整学年学期串（真实验证）。 */
     grades:async(a,c,s)=>{
       const pn=a.cursor?Math.max(1,Number(a.cursor)||1):1;
       const size=a.pageSize&&a.pageSize>0?Math.min(500,Math.floor(a.pageSize)):20;
@@ -426,7 +409,7 @@ export default {
       if(creditsFound)result.totalCredits=String(Number(credits.toFixed(2)));
       return ok(result);
     },
-    /** 考试安排：jqGrid 分页；该接口无学期参数，返回当前会话可见的全部考试（真实探测 ret=0）。 */
+    /** 该接口无学期参数，返回当前会话可见的全部考试（真实探测 ret=0）。 */
     exams:async(a,c,s)=>{
       const pn=a.cursor?Math.max(1,Number(a.cursor)||1):1;
       const size=a.pageSize&&a.pageSize>0?Math.min(500,Math.floor(a.pageSize)):50;

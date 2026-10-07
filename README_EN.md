@@ -8,7 +8,7 @@
 
 - **Who it's for**: Students of Chongqing City Vocational College (`jw.cqcvc.edu.cn`), whose school runs the **Chaoxing Academic Management System** — incompatible with the app's built-in Zhengfang/Qingguo adapters, so it doesn't work out of the box
 - **What it is**: A `kind: independent` academic plugin that implements login, timetable, grades and all other protocols inside the plugin itself — **no APK modification**, independently iterable and publishable
-- **Tech stack**: TypeScript → QuickJS sandbox, academic API v3 contract (SDK 3.2.1), official [plugin-starter-v3 dev kit](https://plugins.hidisiwa.xyz/developers)
+- **Tech stack**: TypeScript → QuickJS sandbox, academic API v3 contract (SDK 3.2.9), official [plugin-starter-v3 dev kit](https://plugins.hidisiwa.xyz/developers)
 - **Origins**: Scaffolded from the official `mock-school` template; protocol documented in [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) reverse-engineering notes
 ## ✨ Features
 
@@ -38,7 +38,7 @@
 
 | Role | Needs |
 |------|------|
-| End user | Android Zhengfang Academic App ≥ v1.0.84 + `.eduplugin` package (the declared UA needs the newer host — see Notes) |
+| End user | Android Zhengfang Academic App ≥ v1.0.84 + `.eduplugin` package (the manifest declares `school.userAgent`, which older hosts reject) |
 | Developer | Node.js ≥ 20 + [plugin-starter-v3 dev kit](https://plugins.hidisiwa.xyz/downloads/plugin-starter-v3.zip) |
 
 ### Installation (easiest way)
@@ -49,14 +49,17 @@
 3. On the same page, tap **"导入适配包" (Import adapter package)** and pick the downloaded `.eduplugin` file
 4. Once matched to `jw.cqcvc.edu.cn`, log in with your student ID and password
 
-> ✅ **Current status (v1.0.7 / API 3)**: term names now render in the friendly form "2026-2027 第一学期" (`id` stays the raw `2026-2027-1`, so grade/schedule API parameters are unchanged), re-packed under **SDK 3.2.4** with check / 15 offline samples / submit-check all green (**v1.0.7 has not been re-accepted on device** — display name and build baseline only). The manifest declares `apiVersion: 3` (migrated under SDK 3.2.1), shipping to the `/academic-plugins-v3/` and v2 catalog channels while **staying compatible with 1.0.87 clients** (legacy channel `[3, 32]` — intentional: the 1.0.87 host's strict schema rejects 3.2-only fields such as `license`/`minAppVersionCode`, and the self-built app on the phones is a 1.0.87 baseline). The UA gap is officially fixed — App ≥ v1.0.84 lets the manifest declare `school.userAgent` ([issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) resolved), and since v1.0.5 this plugin declares the verified browser identity, so **the stock app's UA works out of the box**. However, the "isolated sandbox process kill" (pitfall #2) is still unfixed upstream and is **not HyperOS-specific — the stock app reproduces the timeout on both Xiaomi (HyperOS) and Realme** (see Notes); the self-build `zhengfang-1.0.87-hyperos-fix.apk` (a device-independent manifest change) passed full on-device acceptance on **both Xiaomi and Realme** on 2026-09-24.
+> ✅ **Current status (v1.0.7 / API 3 / SDK 3.2.9)**:
+> - **Term display name**: now renders in the friendly form "2026-2027 第一学期" (`id` stays the raw `2026-2027-1`, so grade/schedule API parameters are unchanged). v1.0.7 was originally re-packed under **SDK 3.2.4** with check / 15 offline samples / submit-check all green, then **re-verified on 2026-10-07 under the latest SDK 3.2.9 dev kit — all green, pack included** (**v1.0.7 has not been re-accepted on device** — display name and build baseline only).
+> - **Manifest `apiVersion: 3`** (migrated under SDK 3.2.1): ships to the `/academic-plugins-v3/` and v2 catalog channels while **staying compatible with 1.0.87 clients** — the legacy channel `[3, 32]` is intentional: the 1.0.87 host's strict schema rejects 3.2-only fields such as `license`/`minAppVersionCode`, and the self-built app is a 1.0.87 baseline.
 
 ### Build from source (recommended)
 
 ```bash
 git clone https://github.com/roxyyn0304/cqcvc-eduplugin.git
-# Place this repository into the dev kit's plugins/ directory as cqcvc:
-#   plugin-starter-v3/plugins/cqcvc/
+# After unzipping plugin-starter-v3.zip (see Requirements) into the current directory, put this repo into its plugins/ as cqcvc:
+unzip plugin-starter-v3.zip -d plugin-starter-v3
+cp -R cqcvc-eduplugin plugin-starter-v3/plugins/cqcvc
 cd plugin-starter-v3
 npm ci                # In China, add a mirror: --registry=https://registry.npmmirror.com
 npm run plugin -- check cqcvc   # manifest & type checks
@@ -114,17 +117,19 @@ The probe is strictly read-only (login + queries); output contains only status c
 
 ## ⚠️ Notes
 
-- ✅ **Host UA (adapted)**: the school WAF allows requests by browser-UA feature (measured on the same endpoint/session with UA as the only difference: browser UA 200, `ZhengfangAcademicPlugin/1` 403; the login POST with a browser UA returned `302 → /admin`). From App ≥ v1.0.84 the manifest may declare `school.userAgent` ([issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) resolved); since v1.0.5 this plugin declares the exact Edge/Windows browser identity used in the live probe (**declaration reason: the WAF allow-rule above, with the measured 200/403 comparison**), and all 25 offline HTTP samples assert the UA the host ultimately sends. ⚠️ Older apps reject the field with their strict schema — **App ≥ v1.0.84 required**
-- ⚠️ **Real-device pitfall #2 (worked around in the personal build)**: the sandbox process spawned with `android:isolatedProcess` is killed by the system *before* the service publishes (the `isolated not needed` kill is logged on Xiaomi HyperOS, ~0.6s after start), so `onServiceConnected` never arrives and `withTimeout(10_000)` reports "插件调用超时" (plugin call timeout). **2026-09-24: the stock app reproduces the same timeout on a Realme device — not HyperOS-specific** (a multi-device issue; no log captured on Realme, so the exact kill mechanism is unconfirmed while the symptom matches). The personal build removes `isolatedProcess` from the manifest (keeping the `:academic_plugin` separate process, dropping only the isolated UID); **the manifest change is device-independent** — verified working on both Xiaomi and Realme (2026-09-24). Filed upstream as [issue #30](https://github.com/znjhahaha/zhengfang-apk/issues/30) (two-OEM reproduction + fix verified on both)
 - 🚧 **Not implemented**: the entire `selection.*` group (drop/selection protocol undocumented — omitted per the all-or-nothing group rule) and `study.gradeDetails` (no interface sample)
 - 🔒 **Security**: credentials never enter source code, samples, logs or chat; all test fixtures are fictional and redacted; the probe is read-only with no mutations
-- ✅ **Verification layers**: offline samples pass (15/15, all 25 HTTP samples assert the UA) → live protocol verified (2026-09-23, week join 38/38 with 0 unused rows) → **on-device main-UI login succeeded (2026-09-23, Plan A dual patch: browser UA past the WAF + `isolatedProcess` removed to dodge the HyperOS kill; log evidence: single bind, zero kills, zero timeouts; with the official UA fix, the v1.0.5 manifest declaration replaces the UA patch)** → **full on-device acceptance passed (2026-09-24, v1.0.5 + the `zhengfang-1.0.87-hyperos-fix` self-build: timeout gone; schedule/grades/exams pages and session all working)**
+- ✅ **Verification layers**:
+  1. Offline samples pass (15/15, all 25 HTTP samples assert the UA)
+  2. Live protocol verified (2026-09-23, week join 38/38 with 0 unused rows)
+  3. On-device main-UI login succeeded (2026-09-23, log evidence: single bind, zero timeouts)
+  4. Full on-device acceptance passed (2026-09-24, schedule/grades/exams pages and session all working)
 - 📜 For learning and personal use only; comply with your school's rules and applicable laws
 
 ## 🙏 Acknowledgements
 
 - [cqcvc-api](https://github.com/roxyyn0304/cqcvc-api) reverse-engineering notes — protocol samples
-- [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) — the host app and plugin architecture (host UA gap [issue #28](https://github.com/znjhahaha/zhengfang-apk/issues/28) fixed in App v1.0.84)
+- [znjhahaha/zhengfang-apk](https://github.com/znjhahaha/zhengfang-apk) — the host app and plugin architecture
 - [Plugin developer docs](https://plugins.hidisiwa.xyz/developers) and the plugin-starter-v3 dev kit
 
 ## 📄 License
