@@ -19,7 +19,8 @@
     "selection.sections",
     "selection.enrolled",
     "selection.select",
-    "selection.drop"
+    "selection.drop",
+    "selection.filters"
   ],
   "network": [
     {
@@ -79,7 +80,7 @@
   "files": {},
   "entry": "index.js",
   "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配：登录、课表、成绩、考试与**选课退课**",
-  "releaseNotes": "v1.1.0：新增选课整组六方法（批次/课程/教学班/已选/选课/退课），并支持学校的时间冲突二次确认（extend.needConfirm → 返回 confirmed:false，用户确认后自动带 sfqc=1 重发）；真机实测修复合集——登录三跳链补 /frontend 范围、落地页 5xx 容错、403→PERMISSION_DENIED、错误带 details、输入 trim、select/drop 自动解析 pcid、UA 改安卓 Chrome；开学日改用权威周历 zclist。最新版本在 Github，插件中心不一定是最新版本",
+  "releaseNotes": "v1.1.0：新增选课整组六方法 + 可选筛选 selection.filters（隐藏冲突教学班，App 97+）；冲突课程在教学班名后标注「（时间冲突）」；选课时间冲突二次确认（extend.needConfirm → confirmed:false，确认后带 sfqc=1 重发）；真机实测修复合集——登录三跳链补 /frontend 范围、落地页 5xx 容错、403→PERMISSION_DENIED、错误带 details、输入 trim、select/drop 自动解析 pcid、UA 改安卓 Chrome；开学日改用权威周历 zclist。最新版本在 Github，插件中心不一定是最新版本",
   "features": [
     "超星教务登录",
     "学期列表与当前学期",
@@ -87,6 +88,7 @@
     "作息表随接口动态适配",
     "成绩与绩点查询",
     "考试安排查询",
-    "选课与退课（批次/课程/已选查询）"
-  ]
+    "选课、退课与冲突提示（批次/课程/已选查询、冲突教学班过滤）"
+  ],
+  "minAppVersionCode": 97
 }

@@ -1092,6 +1092,212 @@
     }
   },
   {
+    "name": "selection-filters",
+    "operation": "selection.filters",
+    "args": {
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"pcencs\":{\"03e882ba19f6423d9d1d5e8be881cc12\":\"pcenc-fixture\"},\"mapsList\":[{\"xkgzid\":\"03e882ba19f6423d9d1d5e8be881cc12\",\"xkgzMc\":\"2026年秋期在校生公选课选课第1批\",\"sfkxk\":\"1\",\"type\":\"2\"}]}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+        "revision": "cqcvc-conflict-v1:03e882ba19f6423d9d1d5e8be881cc12",
+        "groups": [
+          {
+            "id": "conflict",
+            "label": "课程冲突",
+            "kind": "multi",
+            "options": [
+              {
+                "value": "hide",
+                "label": "隐藏冲突教学班（与已选课程时间冲突）"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "selection-courses-conflict-label",
+    "operation": "selection.courses",
+    "args": {
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+      "pageSize": 20
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"pcencs\":{\"03e882ba19f6423d9d1d5e8be881cc12\":\"pcenc-fixture\"},\"mapsList\":[{\"xkgzid\":\"03e882ba19f6423d9d1d5e8be881cc12\",\"xkgzMc\":\"2026年秋期在校生公选课选课第1批\",\"sfkxk\":\"1\",\"type\":\"2\"}]}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listjxbDataV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listjxbDataV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"mysksjd\":[],\"condition\":{},\"kfrlbfb\":\"100\",\"initData\":[{\"id\":\"jxb-1\",\"kcmc\":\"应用文写作\",\"jxbmc\":\"应用文写作(公共课)-理论014\",\"kcid\":\"kc-1\",\"teacher\":\"张老师\",\"xf\":\"2.0\",\"bjrs\":\"32\",\"sksjdd\":\"周二3-4/文华楼101\",\"sfyzjxb\":\"0\",\"sfct\":\"0\",\"status\":\"0\"},{\"id\":\"jxb-2\",\"kcmc\":\"高等数学\",\"jxbmc\":\"高等数学-理论002\",\"kcid\":\"kc-2\",\"teacher\":\"李老师\",\"xf\":\"3.0\",\"bjrs\":\"40\",\"sksjdd\":\"周二3-4/理科楼201\",\"sfyzjxb\":\"0\",\"sfct\":\"1\",\"status\":\"0\"}]}}"
+        },
+        "form": {
+          "from": "jhxk",
+          "kcmc": "",
+          "teacher": "",
+          "jxbmc": "",
+          "glymjxb": "",
+          "glctjxb": "",
+          "kcxz": "",
+          "jxms": "",
+          "kcgs": "",
+          "kclb": "",
+          "kclx": "",
+          "kkxq": "",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12",
+          "pcenc": "pcenc-fixture"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "id": "jxb-1",
+            "name": "应用文写作",
+            "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+            "sectionId": "jxb-1",
+            "teacher": "张老师",
+            "time": "周二3-4/文华楼101",
+            "credits": "2.0",
+            "selected": 32,
+            "sectionName": "应用文写作(公共课)-理论014"
+          },
+          {
+            "id": "jxb-2",
+            "name": "高等数学",
+            "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+            "sectionId": "jxb-2",
+            "teacher": "李老师",
+            "time": "周二3-4/理科楼201",
+            "credits": "3.0",
+            "selected": 40,
+            "sectionName": "高等数学-理论002（时间冲突）"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "selection-courses-hide-conflict",
+    "operation": "selection.courses",
+    "args": {
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+      "pageSize": 20,
+      "filters": {
+        "revision": "cqcvc-conflict-v1:03e882ba19f6423d9d1d5e8be881cc12",
+        "values": {
+          "conflict": [
+            "hide"
+          ]
+        }
+      }
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"pcencs\":{\"03e882ba19f6423d9d1d5e8be881cc12\":\"pcenc-fixture\"},\"mapsList\":[{\"xkgzid\":\"03e882ba19f6423d9d1d5e8be881cc12\",\"xkgzMc\":\"2026年秋期在校生公选课选课第1批\",\"sfkxk\":\"1\",\"type\":\"2\"}]}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listjxbDataV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listjxbDataV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"mysksjd\":[],\"condition\":{},\"kfrlbfb\":\"100\",\"initData\":[{\"id\":\"jxb-1\",\"kcmc\":\"应用文写作\",\"jxbmc\":\"应用文写作(公共课)-理论014\",\"kcid\":\"kc-1\",\"teacher\":\"张老师\",\"xf\":\"2.0\",\"bjrs\":\"32\",\"sksjdd\":\"周二3-4/文华楼101\",\"sfyzjxb\":\"0\",\"sfct\":\"0\",\"status\":\"0\"},{\"id\":\"jxb-2\",\"kcmc\":\"高等数学\",\"jxbmc\":\"高等数学-理论002\",\"kcid\":\"kc-2\",\"teacher\":\"李老师\",\"xf\":\"3.0\",\"bjrs\":\"40\",\"sksjdd\":\"周二3-4/理科楼201\",\"sfyzjxb\":\"0\",\"sfct\":\"1\",\"status\":\"0\"}]}}"
+        },
+        "form": {
+          "from": "jhxk",
+          "kcmc": "",
+          "teacher": "",
+          "jxbmc": "",
+          "glymjxb": "",
+          "glctjxb": "",
+          "kcxz": "",
+          "jxms": "",
+          "kcgs": "",
+          "kclb": "",
+          "kclx": "",
+          "kkxq": "",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12",
+          "pcenc": "pcenc-fixture"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "id": "jxb-1",
+            "name": "应用文写作",
+            "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+            "sectionId": "jxb-1",
+            "teacher": "张老师",
+            "time": "周二3-4/文华楼101",
+            "credits": "2.0",
+            "selected": 32,
+            "sectionName": "应用文写作(公共课)-理论014"
+          }
+        ]
+      }
+    }
+  },
+  {
     "name": "selection-drop-auto-round",
     "operation": "selection.drop",
     "confirmed": true,

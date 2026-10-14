@@ -1,6 +1,6 @@
 # CQCVC Chaoxing Academic Plugin
 
-> A standalone academic plugin (eduplugin) for the Zhengfang Academic App — lets students of Chongqing City Vocational College view their timetable, class periods, grades and exams — and **enrol / drop courses** — in-app. Protocol verified against the live system; all 26 offline test cases pass.
+> A standalone academic plugin (eduplugin) for the Zhengfang Academic App — lets students of Chongqing City Vocational College view their timetable, class periods, grades and exams — and **enrol / drop courses** — in-app. Protocol verified against the live system; all 31 offline test cases pass.
 
 🌐 **English** | [简体中文](README.md)
 
@@ -29,7 +29,7 @@
 
 | Tool | Description |
 |------|------|
-| Offline test cases | 26 fixtures executed in an isolated QuickJS runtime with ordered network mocks; covers login success/failure, session expiry, pagination, week parsing, **multi-room / multi-week slot joining**, **dynamic period table + static fallback**, **the six selection methods (round / course / section / enrolled / select / drop**) and dirty data |
+| Offline test cases | 31 fixtures executed in an isolated QuickJS runtime with ordered network mocks; covers login success/failure, session expiry, pagination, week parsing, **multi-room / multi-week slot joining**, **dynamic period table + static fallback**, **the six selection methods (round / course / section / enrolled / select / drop**) and dirty data |
 | Live protocol probe | `tools/live-probe.mjs`: read-only probe script; credentials are read from a local file only, output is redacted (student ID, name, cookies and grades are never printed) |
 | Packaging | `pack` builds the `.eduplugin` installer; `source-zip` builds the review source archive |
 
@@ -52,6 +52,7 @@
 
 > ✅ **Current status (v1.1.0 / API 3 / SDK 3.6.1)**:
 > - **v1.1.0 (2026-10-14)**: (1) **the complete selection group** — `catalog` ← `listV2.mapsList`, `courses` ← `listjxbDataV2.initData`, `sections` ← `queryChildClassesV2.extend.zjxb` (falls back to the class itself when there are no sub-classes), `enrolled` ← selected-course query `listYxkc` (17 rows measured), `select`/`drop` ← `xsdXkV2`/`xsdTkV2` (`purpose=mutation`, user confirmation); (2) **real-device fixes** — login is a three-hop chain, so the `/frontend` scope was added (the host allowlist used to block the third hop and throw NETWORK_RETRYABLE), a 5xx landing no longer fails the login, HTTP 403 maps to `PERMISSION_DENIED`, every error carries `details`, input is trimmed, `select`/`drop` resolve `pcid` automatically when `roundId` is missing, and the UA is now Android Chrome Mobile; (3) the term start date comes from the authoritative `zclist[0].minrq` (formula kept as fallback; it was 5 days early).
+> - ✅ **v1.1.0 green under the official SDK 3.6.1 kit** (2026-10-14): `doctor` (node 26 / SDK 3.6.1 / QuickJS ready / sdkIntegrity verified) · `check cqcvc` (**16 capabilities**) · `test cqcvc` (**31/31**, 51 HTTP samples) · `submit-check` · `pack` → `dist/local.cqcvc-1.1.0.eduplugin`.
 > - **v1.0.10 (2026-10-14, driven by a live probe)**: `getZclistByXnxq` **requires `xqid`** — without it only `dqzc` comes back; with it you also get `jcsjszList` (periods), `zclist` (**authoritative week calendar**: `minrq/maxrq/rqfw` per week), `jsxq` (scheduling settings) and `kbxssj`. Start date now prefers `zclist[0].minrq` (week 1 here is a partial week, so the old formula returned 08-31 — **5 days earlier** than the real 09-05), falling back to the Date-header + `dqzc` formula; the campus id is cached from the timetable page's `xqdm`, otherwise `getXqList` is queried.
 > - **v1.0.9 (2026-10-14)**: the daily period table is now **served by the API** — `data.jcsjszList` from `getZclistByXnxq` (bound to campus + term; falls back to the built-in 10-period table when absent); the `listV2` request body now matches real traffic (**no body**). One offline case added (static fallback), 16 in total.
 > - ✅ **v1.0.9 / v1.0.10 both green under the official SDK 3.6.1 dev kit** (2026-10-14): `doctor` (node 26 / SDK 3.6.1 / QuickJS ready / sdkIntegrity verified) · `check cqcvc` (9 capabilities) · `test cqcvc` (**16/16**) · `submit-check` · `pack` → v1.0.9 = 7,953 bytes; **v1.0.10 = 8,296 bytes** (SHA-256 `06f3fe2a5ab6baaf72f4af46515158d1fdc78904ec901230560ff274e5196aa5`).
@@ -68,7 +69,7 @@ cp -R cqcvc-eduplugin plugin-starter-v3/plugins/cqcvc
 cd plugin-starter-v3
 npm ci                # In China, add a mirror: --registry=https://registry.npmmirror.com
 npm run plugin -- check cqcvc   # manifest & type checks
-npm run plugin -- test cqcvc    # run all 26 offline cases
+npm run plugin -- test cqcvc    # run all 31 offline cases
 npm run plugin -- pack cqcvc    # → dist/local.cqcvc-*.eduplugin, import it into the app
 ```
 
@@ -99,7 +100,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 
 ## 🔌 API Reference
 
-### Implemented capabilities (15)
+### Implemented capabilities (16)
 
 | Capability | Endpoint | Notes |
 |------|------|------|
@@ -114,6 +115,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 | `selection.catalog` | `POST /admin/xsd/xk/listV2` | Selection rounds: `mapsList.xkgzid` is the `pcid`, `xkgzMc` the name; the same call returns the `pcencs` cipher per round |
 | `selection.courses` | `POST /admin/xsd/xk/listjxbDataV2` | Courses (classes) in a round from `initData` — name / teacher / credits / enrolled count / timetable; supports `keyword` and `teacher` filters |
 | `selection.sections` | `POST /admin/xsd/xk/queryChildClassesV2` | Sub-classes from `extend.zjxb`; when the current round has none (`sfyzjxb` = 0 for every class, measured) the class itself is returned |
+| `selection.filters` | `POST /admin/xsd/xk/listV2` | **Optional filters (App 97+)**: returns a "course conflict" group; when checked, `courses` drops classes flagged by the school (`sfct`), matching the school page's own "filter conflicting classes" toggle; `revision` is bound to the round and expires with `PAGE_CHANGED` |
 | `selection.enrolled` | `GET /admin/xsd/yxkccx/listYxkc` | **Selected-course query** (jqGrid, 17 rows measured): `kcmc`/`kcid`/`id`/`rkjs`/`sksjdd`/`xf` |
 | `selection.select` | `POST /admin/xsd/xk/xsdXkV2` | Enrol (`jxbid`+`pcid`, `purpose=mutation`, user confirmation) → `选课成功`; **timetable-conflict confirmation**: when the backend returns `ret=0` + `extend.needConfirm=true`, the plugin answers `{confirmed:false, message:<conflict text>}` and the next call re-sends with `sfqc=1` to skip the conflict check |
 | `selection.drop` | `POST /admin/xsd/xk/xsdTkV2` | Drop (`jxbid`+`pcid`, `purpose=mutation`, user confirmation) → `退课成功` |
@@ -131,7 +133,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 - 🚧 **Not implemented**: `study.gradeDetails` (grade detail, no interface sample); `selection.filters` (optional SDK method, App 97+, the current round exposes no filter groups)
 - 🔒 **Security**: credentials never enter source code, samples, logs or chat; all test fixtures are fictional and redacted; the probe is read-only with no mutations
 - ✅ **Verification layers**:
-  1. Offline samples pass (26/26, all 44 HTTP samples assert the UA)
+  1. Offline samples pass (31/31, all 51 HTTP samples assert the UA)
   2. Live protocol verified (2026-09-23, week join 38/38 with 0 unused rows)
   3. On-device main-UI login succeeded (2026-09-23, log evidence: single bind, zero timeouts)
   4. Full on-device acceptance passed (2026-09-24, schedule/grades/exams pages and session all working)

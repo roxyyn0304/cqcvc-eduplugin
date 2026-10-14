@@ -1,4 +1,4 @@
-import type {AcademicPlugin,Result,ErrorCode,AuthState,Term,Terms,Schedule,ScheduleEntry,Calendar,Grade,Grades,Exam,Round,Course,Section,Enrollment,Page,PageQuery,SelectionReceipt,HttpRequest,HttpResponse,HostSdk} from '../../../sdk/index';
+import type {AcademicPlugin,Result,ErrorCode,AuthState,Term,Terms,Schedule,ScheduleEntry,Calendar,Grade,Grades,Exam,Round,Course,Section,Enrollment,Page,PageQuery,SelectionReceipt,SelectionFilters,HttpRequest,HttpResponse,HostSdk} from '../../../sdk/index';
 
 const ORIGIN='https://jw.cqcvc.edu.cn';
 const LOGIN=`${ORIGIN}/admin/login`;
@@ -102,6 +102,9 @@ const readSelectionBootstrap=async(s:HostSdk):Promise<{rounds:Round[];pcenc:Reco
     return{rounds,pcenc,termId};
   }catch{return null;}
 };
+
+/** 选课筛选的 revision（与账号/提供者/批次绑定的不透明串）。 */
+const conflictRevision=(roundId:string)=>`cqcvc-conflict-v1:${roundId}`;
 
 /** 宿主调用 select/drop 时常常只给 sectionId/enrollmentId，不带 roundId —— 此时用 listV2 的当前批次兜底（pcid 必填，学校会报「pcid 为空」）。 */
 const resolveRoundId=async(a:{roundId?:string},s:HostSdk):Promise<string>=>{
@@ -589,6 +592,18 @@ export default {
    * 映射：Round←listV2.mapsList（xkgzid=pcid）· Course←listjxbDataV2.initData · Section←queryChildClassesV2.extend.zjxb（无子班时即教学班自身）
    *      · Enrollment←已选课程查询 listYxkc · select/drop←xsdXkV2 / xsdTkV2（purpose=mutation，需用户确认） */
   selection:{
+    /** 可选筛选（App 97+）：学校网页有「过滤冲突教学班」勾选，这里把它做成 App 里的筛选项。 */
+    filters:async(a,c,s)=>{
+      const boot=await readSelectionBootstrap(s);
+      if(!boot)return err('NETWORK_RETRYABLE','选课批次获取失败，请稍后重试');
+      const roundId=String(a.roundId??'');
+      if(!roundId||!boot.rounds.some(r=>r.id===roundId))return err('VALIDATION_FAILED','未知的选课批次');
+      return ok<SelectionFilters>({roundId,revision:conflictRevision(roundId),groups:[
+        {id:'conflict',label:'课程冲突',kind:'multi',options:[
+          {value:'hide',label:'隐藏冲突教学班（与已选课程时间冲突）'}
+        ]}
+      ]});
+    },
     catalog:async(a,c,s)=>{
       const boot=await readSelectionBootstrap(s);
       if(!boot)return err('NETWORK_RETRYABLE','选课批次获取失败，请稍后重试');
@@ -598,6 +613,8 @@ export default {
       const boot=await readSelectionBootstrap(s);
       if(!boot)return err('NETWORK_RETRYABLE','选课批次获取失败，请稍后重试');
       const roundId=String(a.roundId??'');
+      // revision 与账号/提供者/批次绑定；过期或跨批次的筛选值必须重新加载（SDK 契约要求）
+      if(a.filters&&String(a.filters.revision??'')!==conflictRevision(roundId))return err('PAGE_CHANGED','筛选条件已过期，请重新加载筛选项');
       const form:Record<string,string>={
         from:'jhxk',kcmc:String(a.keyword??''),teacher:String(a.teacher??''),jxbmc:'',
         glymjxb:'',glctjxb:'',kcxz:'',jxms:'',kcgs:'',kclb:'',kclx:'',kkxq:'',
@@ -607,11 +624,16 @@ export default {
       if(!r.ok)return{ok:false,error:r.error};
       if(Number(r.payload?.ret)!==0)return err('VALIDATION_FAILED',String(r.payload?.msg||'课程列表获取失败'));
       const rows=Array.isArray(r.payload?.data?.initData)?r.payload.data.initData:[];
+      // 选课筛选（App 97+ 的 selection.filters）：目前只有「隐藏冲突教学班」，行为与学校网页的同名勾选一致。
+      // sfct 是学校下发的冲突标记（0=未冲突），status 0=未选；只有"未选且冲突"才该被过滤或标注。
+      const hideConflict=a.filters?.values?.conflict?.includes('hide')===true;
       const items:Course[]=[];
       for(const row of rows){
         if(!row||typeof row!=='object')continue;
         const name=String(row.kcmc??'').trim();
         if(!name)continue;
+        const conflicted=String(row.sfct??'0')!=='0'&&String(row.status??'')==='0';
+        if(hideConflict&&conflicted)continue;
         const id=String(row.id??'').trim()||`c${items.length+1}`;
         const course:Course={id,name,roundId,sectionId:id};
         const teacher=String(row.teacher??'').trim();if(teacher)course.teacher=teacher;
@@ -619,7 +641,9 @@ export default {
         const credits=String(row.xf??'').trim();if(credits)course.credits=credits;
         const capacity=Number(String(row.yxrl??'').trim());if(Number.isFinite(capacity)&&capacity>0)course.capacity=capacity;
         const selected=Number(String(row.bjrs??'').trim());if(Number.isFinite(selected))course.selected=selected;
-        const jxbmc=String(row.jxbmc??'').trim();if(jxbmc)course.sectionName=jxbmc;
+        const jxbmc=String(row.jxbmc??'').trim();
+        // SDK 的 Course 没有冲突字段，冲突标记只能拼进 sectionName 才能被 App 显示出来
+        if(jxbmc)course.sectionName=conflicted?`${jxbmc}（时间冲突）`:jxbmc;
         items.push(course);
       }
       return ok(pageOf(items,a));
