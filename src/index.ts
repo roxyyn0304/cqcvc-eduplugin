@@ -675,11 +675,23 @@ export default {
     select:async(a,c,s)=>{
       const pcid=await resolveRoundId(a,s);
       if(!pcid)return err('NOT_OPEN','当前没有可操作的选课批次，请稍后再试');
-      const r=await fetchJson(s,{url:XK_SELECT,method:'POST',purpose:'mutation',headers:AJAX_HEADERS,
-        form:{jxbid:String(a.sectionId||a.courseId||''),pcid}});
+      const jxbid=String(a.sectionId||a.courseId||'');
+      // 冲突二次确认（学校真实协议）：与已报名课程时间冲突时，后端返回 ret=0 + extend.needConfirm=true，
+      // 必须由学生确认后带 sfqc=1 重发才真正选上。不处理会把"待确认"误报成"已选上"。
+      const pending=await s.state.get<{jxbid:string;pcid:string}>('cqcvc.pendingConfirm');
+      const form:Record<string,string>={jxbid,pcid};
+      if(pending&&pending.jxbid===jxbid&&pending.pcid===pcid)form.sfqc='1';
+      const r=await fetchJson(s,{url:XK_SELECT,method:'POST',purpose:'mutation',headers:AJAX_HEADERS,form});
       if(!r.ok)return{ok:false,error:r.error};
-      const msg=String(r.payload?.msg??'').trim();
-      if(Number(r.payload?.ret)!==0)return err('VALIDATION_FAILED',msg||'选课失败');
+      const payload=r.payload;
+      const msg=String(payload?.msg??'').trim();
+      if(Number(payload?.ret)!==0)return err('VALIDATION_FAILED',msg||'选课失败');
+      const extend=payload&&typeof payload.extend==='object'&&payload.extend?payload.extend:null;
+      if(extend&&(extend as{needConfirm?:unknown}).needConfirm){
+        await s.state.set('cqcvc.pendingConfirm',{jxbid,pcid});
+        return ok<SelectionReceipt>({confirmed:false,message:msg||'与已报名课程时间冲突，请确认后再次提交'});
+      }
+      await s.state.remove('cqcvc.pendingConfirm');
       return ok<SelectionReceipt>({confirmed:true,message:msg||'选课成功'});
     },
     drop:async(a,c,s)=>{

@@ -1017,6 +1017,81 @@
     }
   },
   {
+    "name": "selection-select-conflict-first",
+    "operation": "selection.select",
+    "confirmed": true,
+    "args": {
+      "courseId": "kc-7",
+      "sectionId": "jxb-7",
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdXkV2",
+        "purpose": "mutation",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "form": {
+          "jxbid": "jxb-7",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12"
+        },
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdXkV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"与已报名课程时间冲突\",\"extend\":{\"needConfirm\":true}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "confirmed": false,
+        "message": "与已报名课程时间冲突"
+      }
+    }
+  },
+  {
+    "name": "selection-select-conflict-confirm",
+    "operation": "selection.select",
+    "confirmed": true,
+    "args": {
+      "courseId": "kc-7",
+      "sectionId": "jxb-7",
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdXkV2",
+        "purpose": "mutation",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "form": {
+          "jxbid": "jxb-7",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12",
+          "sfqc": "1"
+        },
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdXkV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"选课成功\"}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "confirmed": true,
+        "message": "选课成功"
+      }
+    }
+  },
+  {
     "name": "selection-drop-auto-round",
     "operation": "selection.drop",
     "confirmed": true,

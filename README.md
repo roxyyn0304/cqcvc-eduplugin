@@ -114,8 +114,10 @@ node tools/live-probe.mjs --analyze ./credentials.env
 | `selection.courses` | `POST /admin/xsd/xk/listjxbDataV2` | 批次内课程（教学班）：`initData` → 课程名/教师/学分/已选人数/上课时间；支持 `keyword`、`teacher` 筛选 |
 | `selection.sections` | `POST /admin/xsd/xk/queryChildClassesV2` | 子教学班：`extend.zjxb`；本校当前批次无子班（实测 `sfyzjxb` 全为 0）时即教学班自身 |
 | `selection.enrolled` | `GET /admin/xsd/yxkccx/listYxkc` | **已选课程查询**（jqGrid，实测 17 门）：`kcmc`/`kcid`/`id`/`rkjs`/`sksjdd`/`xf` |
-| `selection.select` | `POST /admin/xsd/xk/xsdXkV2` | 选课（`jxbid`+`pcid`，`purpose=mutation`，需用户确认）→ `选课成功` |
+| `selection.select` | `POST /admin/xsd/xk/xsdXkV2` | 选课（`jxbid`+`pcid`，`purpose=mutation`，需用户确认）→ `选课成功`；**时间冲突二次确认**：后端返回 `ret=0` + `extend.needConfirm=true` 时返回 `{confirmed:false, message:冲突信息}`，用户在 App 确认后再次调用会自动带 `sfqc=1` 重发以跳过冲突校验 |
 | `selection.drop` | `POST /admin/xsd/xk/xsdTkV2` | 退课（`jxbid`+`pcid`，`purpose=mutation`，需用户确认）→ `退课成功` |
+
+> 📌 **学校侧的冲突机制（2026-10-13 抓包 JS）**：课程列表每项带 `sfct`（`0`=未冲突，非 0=冲突）与 `status`（`0`=未选），页面据此打「课程冲突」标签并提供「过滤冲突教学班」勾选；抽签模式报名时后端以 `extend.needConfirm=true` 要求二次确认，确认后带 `sfqc=1` 重发。插件已实现二次确认链路；**冲突标签本身无法透传给 App**（SDK 的 `Course` 类型没有冲突字段），App 侧只能依据 `time`/`location` 自行比对。
 
 ### 网络规则
 

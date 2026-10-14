@@ -115,7 +115,7 @@ The probe is strictly read-only (login + queries); output contains only status c
 | `selection.courses` | `POST /admin/xsd/xk/listjxbDataV2` | Courses (classes) in a round from `initData` — name / teacher / credits / enrolled count / timetable; supports `keyword` and `teacher` filters |
 | `selection.sections` | `POST /admin/xsd/xk/queryChildClassesV2` | Sub-classes from `extend.zjxb`; when the current round has none (`sfyzjxb` = 0 for every class, measured) the class itself is returned |
 | `selection.enrolled` | `GET /admin/xsd/yxkccx/listYxkc` | **Selected-course query** (jqGrid, 17 rows measured): `kcmc`/`kcid`/`id`/`rkjs`/`sksjdd`/`xf` |
-| `selection.select` | `POST /admin/xsd/xk/xsdXkV2` | Enrol (`jxbid`+`pcid`, `purpose=mutation`, user confirmation) → `选课成功` |
+| `selection.select` | `POST /admin/xsd/xk/xsdXkV2` | Enrol (`jxbid`+`pcid`, `purpose=mutation`, user confirmation) → `选课成功`; **timetable-conflict confirmation**: when the backend returns `ret=0` + `extend.needConfirm=true`, the plugin answers `{confirmed:false, message:<conflict text>}` and the next call re-sends with `sfqc=1` to skip the conflict check |
 | `selection.drop` | `POST /admin/xsd/xk/xsdTkV2` | Drop (`jxbid`+`pcid`, `purpose=mutation`, user confirmation) → `退课成功` |
 
 ### Network rules
