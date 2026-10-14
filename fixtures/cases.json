@@ -6,7 +6,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -18,9 +18,8 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
-        "body": "{}",
         "response": {
           "status": 200,
           "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
@@ -42,7 +41,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -54,7 +53,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "response": {
           "status": 302,
@@ -66,9 +65,8 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
-        "body": "{}",
         "response": {
           "status": 200,
           "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
@@ -83,6 +81,172 @@
     }
   },
   {
+    "name": "login-identity-fallback",
+    "operation": "auth.start",
+    "args": {
+      "username": "20240001",
+      "password": "demo-password"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/login",
+          "headers": {
+            "Content-Type": "text/html"
+          },
+          "body": "<html><head><title>登录</title></head><body><form action=\"/admin/login\" method=\"post\"><input type=\"hidden\" name=\"jcaptchaCode\" value=\"\"/><input type=\"hidden\" name=\"rememberMe\" value=\"1\"/></form></body></html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 302,
+          "url": "https://jw.cqcvc.edu.cn/admin/login",
+          "headers": {
+            "Location": "https://jw.cqcvc.edu.cn/admin",
+            "Content-Type": "text/html"
+          },
+          "body": ""
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"showGoHome\":\"1\"}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"showGoHome\":\"1\"}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/api/jcsj/xqsj/getXqList",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/api/jcsj/xqsj/getXqList",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"操作成功\",\"data\":[{\"id\":\"00001\",\"xqmc\":\"永川\",\"xqdz\":\"重庆市永川区兴龙大道1999号\",\"currentUserName\":\"20240001\",\"currentRoleId\":\"xs\",\"dataXnxq\":\"2026-2027-1\"}]}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "status": "authenticated",
+        "studentId": "20240001",
+        "studentName": "20240001"
+      }
+    }
+  },
+  {
+    "name": "login-landing-5xx-still-authenticates",
+    "operation": "auth.start",
+    "args": {
+      "username": "20240001",
+      "password": "demo-password"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/login",
+          "headers": {
+            "Content-Type": "text/html"
+          },
+          "body": "<html><head><title>登录</title></head><body><form action=\"/admin/login\" method=\"post\"><input type=\"hidden\" name=\"jcaptchaCode\" value=\"\"/><input type=\"hidden\" name=\"rememberMe\" value=\"1\"/></form></body></html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/login",
+        "purpose": "auth",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 502,
+          "url": "https://jw.cqcvc.edu.cn/admin",
+          "headers": {
+            "Content-Type": "text/html"
+          },
+          "body": "<html>Bad Gateway</html>"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xsxh\":\"20240001\",\"xsxm\":\"测试同学\",\"xkxnxq\":\"2026-2027-1\"}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "status": "authenticated",
+        "studentId": "20240001",
+        "studentName": "测试同学"
+      }
+    }
+  },
+  {
+    "name": "login-empty-input",
+    "operation": "auth.start",
+    "args": {
+      "username": "",
+      "password": ""
+    },
+    "http": [],
+    "expect": {
+      "ok": false,
+      "error": {
+        "code": "VALIDATION_FAILED",
+        "message": "请输入学号与密码",
+      "details": {"stage": "input", "usernameEmpty": "true", "passwordEmpty": "true"}
+      }
+    }
+  },
+  {
     "name": "login-wrong-password",
     "operation": "auth.start",
     "args": {"username": "20240001", "password": "wrong-password"},
@@ -90,7 +254,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -102,7 +266,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/login",
         "purpose": "auth",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "response": {
           "status": 200,
@@ -112,7 +276,7 @@
         }
       }
     ],
-    "expect": {"ok": false, "error": {"code": "INVALID_CREDENTIALS", "message": "学号或密码错误"}}
+    "expect": {"ok": false, "error": {"code": "INVALID_CREDENTIALS", "message": "学号或密码错误（登录请求被跳回登录页）", "details": {"stage": "login.post", "status": "200", "bounced": "true"}}}
   },
   {
     "name": "resume-unsupported",
@@ -133,7 +297,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/qbcjcx",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -145,7 +309,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -175,7 +339,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -187,7 +351,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "response": {
           "status": 200,
@@ -199,7 +363,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -211,7 +375,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -244,17 +408,105 @@
   {
     "name": "calendar",
     "operation": "study.calendar",
-    "args": {"termId": "2026-2027-1"},
+    "args": {
+      "termId": "2026-2027-1"
+    },
     "http": [
       {
-        "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq",
+        "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq?xnxq=2026-2027-1&role=&userId=&xqid=00001",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
-          "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq",
-          "headers": {"Content-Type": "application/json", "Date": "Wed, 23 Sep 2026 06:00:00 GMT"},
+          "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq?xnxq=2026-2027-1&role=&userId=&xqid=00001",
+          "headers": {
+            "Content-Type": "application/json",
+            "Date": "Wed, 23 Sep 2026 06:00:00 GMT"
+          },
+          "body": "{\"ret\":0,\"data\":{\"jcsjszList\":[{\"jc\":\"1\",\"kssj\":\"8:20\",\"jssj\":\"09:05\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"2\",\"kssj\":\"9:15\",\"jssj\":\"10:00\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"3\",\"kssj\":\"10:30\",\"jssj\":\"11:15\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"4\",\"kssj\":\"11:25\",\"jssj\":\"12:10\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"5\",\"kssj\":\"14:00\",\"jssj\":\"14:45\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"6\",\"kssj\":\"14:55\",\"jssj\":\"15:40\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"7\",\"kssj\":\"16:10\",\"jssj\":\"16:55\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"8\",\"kssj\":\"17:05\",\"jssj\":\"17:50\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"9\",\"kssj\":\"19:30\",\"jssj\":\"20:15\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},{\"jc\":\"10\",\"kssj\":\"20:25\",\"jssj\":\"21:10\",\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"}],\"zclist\":[{\"zc\":\"1\",\"minrq\":\"2026-09-05 00:00:00\",\"maxrq\":\"2026-09-06 00:00:00\",\"rqfw\":\"09.05-09.06\"},{\"zc\":\"2\",\"minrq\":\"2026-09-07 00:00:00\",\"maxrq\":\"2026-09-13 00:00:00\",\"rqfw\":\"09.07-09.13\"},{\"zc\":\"3\",\"minrq\":\"2026-09-14 00:00:00\",\"maxrq\":\"2026-09-20 00:00:00\",\"rqfw\":\"09.14-09.20\"},{\"zc\":\"4\",\"minrq\":\"2026-09-21 00:00:00\",\"maxrq\":\"2026-09-27 00:00:00\",\"rqfw\":\"09.21-09.27\"}],\"jsxq\":{\"xnxq\":\"2026-2027-1\",\"xqid\":\"00001\"},\"dqzc\":\"4\",\"kbxssj\":\"1\"}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "termId": "2026-2027-1",
+        "startDate": "2026-09-05",
+        "periods": [
+          {
+            "number": 1,
+            "start": "08:20",
+            "end": "09:05"
+          },
+          {
+            "number": 2,
+            "start": "09:15",
+            "end": "10:00"
+          },
+          {
+            "number": 3,
+            "start": "10:30",
+            "end": "11:15"
+          },
+          {
+            "number": 4,
+            "start": "11:25",
+            "end": "12:10"
+          },
+          {
+            "number": 5,
+            "start": "14:00",
+            "end": "14:45"
+          },
+          {
+            "number": 6,
+            "start": "14:55",
+            "end": "15:40"
+          },
+          {
+            "number": 7,
+            "start": "16:10",
+            "end": "16:55"
+          },
+          {
+            "number": 8,
+            "start": "17:05",
+            "end": "17:50"
+          },
+          {
+            "number": 9,
+            "start": "19:30",
+            "end": "20:15"
+          },
+          {
+            "number": 10,
+            "start": "20:25",
+            "end": "21:10"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "calendar-fallback-static",
+    "operation": "study.calendar",
+    "args": {
+      "termId": "2026-2027-1"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq?xnxq=2026-2027-1&role=&userId=&xqid=00001",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/api/getZclistByXnxq?xnxq=2026-2027-1&role=&userId=&xqid=00001",
+          "headers": {
+            "Content-Type": "application/json",
+            "Date": "Wed, 23 Sep 2026 06:00:00 GMT"
+          },
           "body": "{\"ret\":0,\"data\":{\"dqzc\":\"4\"}}"
         }
       }
@@ -265,16 +517,56 @@
         "termId": "2026-2027-1",
         "startDate": "2026-08-31",
         "periods": [
-          {"number": 1, "start": "08:20", "end": "09:05"},
-          {"number": 2, "start": "09:15", "end": "10:00"},
-          {"number": 3, "start": "10:30", "end": "11:15"},
-          {"number": 4, "start": "11:25", "end": "12:10"},
-          {"number": 5, "start": "14:00", "end": "14:45"},
-          {"number": 6, "start": "14:55", "end": "15:40"},
-          {"number": 7, "start": "16:10", "end": "16:55"},
-          {"number": 8, "start": "17:05", "end": "17:50"},
-          {"number": 9, "start": "19:30", "end": "20:15"},
-          {"number": 10, "start": "20:25", "end": "21:10"}
+          {
+            "number": 1,
+            "start": "08:20",
+            "end": "09:05"
+          },
+          {
+            "number": 2,
+            "start": "09:15",
+            "end": "10:00"
+          },
+          {
+            "number": 3,
+            "start": "10:30",
+            "end": "11:15"
+          },
+          {
+            "number": 4,
+            "start": "11:25",
+            "end": "12:10"
+          },
+          {
+            "number": 5,
+            "start": "14:00",
+            "end": "14:45"
+          },
+          {
+            "number": 6,
+            "start": "14:55",
+            "end": "15:40"
+          },
+          {
+            "number": 7,
+            "start": "16:10",
+            "end": "16:55"
+          },
+          {
+            "number": 8,
+            "start": "17:05",
+            "end": "17:50"
+          },
+          {
+            "number": 9,
+            "start": "19:30",
+            "end": "20:15"
+          },
+          {
+            "number": 10,
+            "start": "20:25",
+            "end": "21:10"
+          }
         ]
       }
     }
@@ -287,7 +579,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "form": {"page.pn": "1", "page.size": "20", "startXnxq": "2026-2027-1", "endXnxq": "2026-2027-1", "sort": "xnxq", "order": "desc"},
         "response": {
@@ -300,7 +592,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -331,7 +623,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "form": {"page.pn": "2", "page.size": "20", "startXnxq": "2026-2027-1", "endXnxq": "2026-2027-1", "sort": "xnxq", "order": "desc"},
         "response": {
@@ -344,7 +636,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdzgcjcx/getXspjxfjd",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -364,7 +656,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "form": {
           "queryFields": "id,kspcmc,xh,xm,kcmc,kssj,jsmc,ksfs,ksxs,zwh,bkcs,bz,rwbz,",
@@ -401,7 +693,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "form": {
           "queryFields": "id,kspcmc,xh,xm,kcmc,kssj,jsmc,ksfs,ksxs,zwh,bkcs,bz,rwbz,",
@@ -435,7 +727,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/xsd/xsdcjcx/getCurrentXnxq",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 302,
@@ -445,7 +737,335 @@
         }
       }
     ],
-    "expect": {"ok": false, "error": {"code": "SESSION_EXPIRED", "message": "会话已失效，请重新登录"}}
+    "expect": {"ok": false, "error": {"code": "SESSION_EXPIRED", "message": "会话已失效，请重新登录", "details": {"stage": "validate", "status": "302"}}}
+  },
+  {
+    "name": "selection-catalog",
+    "operation": "selection.catalog",
+    "args": {
+      "pageSize": 20
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"pcencs\":{\"03e882ba19f6423d9d1d5e8be881cc12\":\"pcenc-fixture\"},\"mapsList\":[{\"xkgzid\":\"03e882ba19f6423d9d1d5e8be881cc12\",\"xkgzMc\":\"2026年秋期在校生公选课选课第1批\",\"sfkxk\":\"1\",\"type\":\"2\"}]}}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "id": "03e882ba19f6423d9d1d5e8be881cc12",
+            "name": "2026年秋期在校生公选课选课第1批",
+            "termId": "2026-2027-1",
+            "open": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "selection-courses",
+    "operation": "selection.courses",
+    "args": {
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+      "pageSize": 20
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"pcencs\":{\"03e882ba19f6423d9d1d5e8be881cc12\":\"pcenc-fixture\"},\"mapsList\":[{\"xkgzid\":\"03e882ba19f6423d9d1d5e8be881cc12\",\"xkgzMc\":\"2026年秋期在校生公选课选课第1批\",\"sfkxk\":\"1\",\"type\":\"2\"}]}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listjxbDataV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listjxbDataV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"mysksjd\":[],\"condition\":{},\"kfrlbfb\":\"100\",\"initData\":[{\"id\":\"jxb-1\",\"kcmc\":\"应用文写作\",\"jxbmc\":\"应用文写作(公共课)-理论014\",\"kcid\":\"kc-1\",\"teacher\":\"张老师\",\"xf\":\"2.0\",\"bjrs\":\"32\",\"sksjdd\":\"周二3-4/文华楼101\",\"sfyzjxb\":\"0\"}]}}"
+        },
+        "form": {
+          "from": "jhxk",
+          "kcmc": "",
+          "teacher": "",
+          "jxbmc": "",
+          "glymjxb": "",
+          "glctjxb": "",
+          "kcxz": "",
+          "jxms": "",
+          "kcgs": "",
+          "kclb": "",
+          "kclx": "",
+          "kkxq": "",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12",
+          "pcenc": "pcenc-fixture"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "id": "jxb-1",
+            "name": "应用文写作",
+            "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+            "sectionId": "jxb-1",
+            "teacher": "张老师",
+            "time": "周二3-4/文华楼101",
+            "credits": "2.0",
+            "selected": 32,
+            "sectionName": "应用文写作(公共课)-理论014"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "selection-sections-no-child",
+    "operation": "selection.sections",
+    "args": {
+      "courseId": "kc-1",
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"pcencs\":{\"03e882ba19f6423d9d1d5e8be881cc12\":\"pcenc-fixture\"},\"mapsList\":[{\"xkgzid\":\"03e882ba19f6423d9d1d5e8be881cc12\",\"xkgzMc\":\"2026年秋期在校生公选课选课第1批\",\"sfkxk\":\"1\",\"type\":\"2\"}]}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/queryChildClassesV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/queryChildClassesV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"操作成功\",\"extend\":{}}"
+        },
+        "form": {
+          "jxbid": "kc-1",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12",
+          "pcenc": "pcenc-fixture",
+          "from": "jhxk"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "id": "kc-1",
+            "courseId": "kc-1"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "selection-enrolled",
+    "operation": "selection.enrolled",
+    "args": {
+      "pageSize": 50
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/yxkccx/listYxkc?gridtype=jqgrid&async=1&page.pn=1&page.size=50&sort=id&order=asc&_search=false",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "GET",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/yxkccx/listYxkc?gridtype=jqgrid&async=1&page.pn=1&page.size=50&sort=id&order=asc&_search=false",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"msg\":\"ok\",\"ret\":0,\"page\":1,\"rows\":50,\"total\":17,\"totalPages\":1,\"results\":[{\"id\":\"jxb-1\",\"kcid\":\"kc-1\",\"kcmc\":\"应用文写作\",\"rkjs\":\"张老师\",\"sksjdd\":\"周二3-4/文华楼101\",\"xf\":\"2.0\",\"xnxq\":\"2026-2027-1\"}]}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "id": "jxb-1",
+            "courseId": "kc-1",
+            "sectionId": "jxb-1",
+            "name": "应用文写作",
+            "teacher": "张老师",
+            "time": "周二3-4/文华楼101",
+            "credits": "2.0"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "selection-select",
+    "operation": "selection.select",
+    "confirmed": true,
+    "args": {
+      "courseId": "kc-1",
+      "sectionId": "jxb-1",
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdXkV2",
+        "purpose": "mutation",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "form": {
+          "jxbid": "jxb-1",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12"
+        },
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdXkV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"选课成功\"}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "confirmed": true,
+        "message": "选课成功"
+      }
+    }
+  },
+  {
+    "name": "selection-drop",
+    "operation": "selection.drop",
+    "confirmed": true,
+    "args": {
+      "courseId": "kc-1",
+      "sectionId": "jxb-1",
+      "roundId": "03e882ba19f6423d9d1d5e8be881cc12",
+      "enrollmentId": "jxb-1"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdTkV2",
+        "purpose": "mutation",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "form": {
+          "jxbid": "jxb-1",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12"
+        },
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdTkV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"退课成功\"}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "confirmed": true,
+        "message": "退课成功"
+      }
+    }
+  },
+  {
+    "name": "selection-drop-auto-round",
+    "operation": "selection.drop",
+    "confirmed": true,
+    "args": {
+      "courseId": "kc-9",
+      "sectionId": "jxb-9",
+      "enrollmentId": "jxb-9"
+    },
+    "http": [
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+        "purpose": "query",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/listV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"success\",\"data\":{\"xkxnxq\":\"2026-2027-1\",\"pcencs\":{\"03e882ba19f6423d9d1d5e8be881cc12\":\"pcenc-fixture\"},\"mapsList\":[{\"xkgzid\":\"03e882ba19f6423d9d1d5e8be881cc12\",\"xkgzMc\":\"2026年秋期在校生公选课选课第1批\",\"sfkxk\":\"1\",\"type\":\"2\"}]}}"
+        }
+      },
+      {
+        "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdTkV2",
+        "purpose": "mutation",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+        "method": "POST",
+        "form": {
+          "jxbid": "jxb-9",
+          "pcid": "03e882ba19f6423d9d1d5e8be881cc12"
+        },
+        "response": {
+          "status": 200,
+          "url": "https://jw.cqcvc.edu.cn/admin/xsd/xk/xsdTkV2",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ret\":0,\"msg\":\"退课成功\"}"
+        }
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "data": {
+        "confirmed": true,
+        "message": "退课成功"
+      }
+    }
   },
   {
     "name": "schedule-multi-room-weeks",
@@ -455,7 +1075,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getCurrentPkZc",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -467,7 +1087,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/getXsdSykb",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "POST",
         "response": {
           "status": 200,
@@ -479,7 +1099,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/queryKbForXsd?xnxq=2026-2027-1&zxzc=&zdzc=&xskbxslx=0",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,
@@ -491,7 +1111,7 @@
       {
         "url": "https://jw.cqcvc.edu.cn/admin/pkgl/xskb/sdpkkbList?xnxq=2026-2027-1&xhid=fixture-xhid-aaaaaaaaaaaaaaaa&xqdm=00001&zdzc=&zxzc=&xskbxslx=0",
         "purpose": "query",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
         "method": "GET",
         "response": {
           "status": 200,

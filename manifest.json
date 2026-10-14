@@ -1,7 +1,7 @@
 {
   "id": "local.cqcvc",
   "name": "重庆城市职业学院超星教务适配",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "apiVersion": 3,
   "kind": "independent",
   "capabilities": [
@@ -13,26 +13,58 @@
     "study.schedule",
     "study.calendar",
     "study.grades",
-    "study.exams"
+    "study.exams",
+    "selection.catalog",
+    "selection.courses",
+    "selection.sections",
+    "selection.enrolled",
+    "selection.select",
+    "selection.drop"
   ],
   "network": [
     {
       "origin": "https://jw.cqcvc.edu.cn",
       "pathPrefix": "/admin/login",
-      "methods": ["POST"],
-      "purposes": ["auth"]
+      "methods": [
+        "POST"
+      ],
+      "purposes": [
+        "auth"
+      ]
     },
     {
       "origin": "https://jw.cqcvc.edu.cn",
       "pathPrefix": "/admin",
-      "methods": ["GET", "POST"],
-      "purposes": ["query", "auth"]
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "purposes": [
+        "query",
+        "auth",
+        "mutation"
+      ]
+    },
+    {
+      "origin": "https://jw.cqcvc.edu.cn",
+      "pathPrefix": "/frontend",
+      "methods": [
+        "GET"
+      ],
+      "purposes": [
+        "query",
+        "auth"
+      ]
     },
     {
       "origin": "https://jw.cqcvc.edu.cn",
       "pathPrefix": "/login",
-      "methods": ["GET"],
-      "purposes": ["auth"]
+      "methods": [
+        "GET"
+      ],
+      "purposes": [
+        "auth"
+      ]
     }
   ],
   "school": {
@@ -42,18 +74,19 @@
     "protocol": "https",
     "basePath": "/",
     "academicSystem": "auto",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0"
+    "userAgent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36"
   },
   "files": {},
   "entry": "index.js",
-  "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配",
-  "releaseNotes": "最新版本在Github，插件中心不一定是最新版本",
+  "description": "重庆城市职业学院（jw.cqcvc.edu.cn）超星综合教学管理系统独立适配：登录、课表、成绩、考试与**选课退课**",
+  "releaseNotes": "v1.1.0：新增选课整组六方法（批次/课程/教学班/已选/选课/退课）；真机实测修复合集——登录三跳链补 /frontend 范围、落地页 5xx 容错、403→PERMISSION_DENIED、错误带 details、输入 trim、select/drop 自动解析 pcid、UA 改安卓 Chrome；开学日改用权威周历 zclist。最新版本在 Github，插件中心不一定是最新版本",
   "features": [
     "超星教务登录",
     "学期列表与当前学期",
     "周课表（含断周课程周次）",
-    "上课作息时间表",
+    "作息表随接口动态适配",
     "成绩与绩点查询",
-    "考试安排查询"
+    "考试安排查询",
+    "选课与退课（批次/课程/已选查询）"
   ]
 }

@@ -1,4 +1,4 @@
-import type {AcademicPlugin,Result,ErrorCode,AuthState,Term,Terms,Schedule,ScheduleEntry,Calendar,Grade,Grades,Exam,HttpRequest,HttpResponse,HostSdk} from '../../../sdk/index';
+import type {AcademicPlugin,Result,ErrorCode,AuthState,Term,Terms,Schedule,ScheduleEntry,Calendar,Grade,Grades,Exam,Round,Course,Section,Enrollment,Page,PageQuery,SelectionReceipt,HttpRequest,HttpResponse,HostSdk} from '../../../sdk/index';
 
 const ORIGIN='https://jw.cqcvc.edu.cn';
 const LOGIN=`${ORIGIN}/admin/login`;
@@ -6,10 +6,18 @@ const IDENTITY=`${ORIGIN}/admin/xsd/xk/listV2`;
 const CURRENT_TERM=`${ORIGIN}/admin/xsd/xsdcjcx/getCurrentXnxq`;
 const GRADES_FRAME=`${ORIGIN}/admin/xsd/xsdcjcx/qbcjcx`;
 const PKZC=`${ORIGIN}/admin/getCurrentPkZc`;
+const XQLIST=`${ORIGIN}/admin/api/jcsj/xqsj/getXqList`;
 const SCHEDULE_URL=`${ORIGIN}/admin/getXsdSykb`;
 const GRADES_URL=`${ORIGIN}/admin/xsd/xsdcjcx/xsdQueryXscjList?fxbz=0&gridtype=jqgrid`;
 const GPA_URL=`${ORIGIN}/admin/xsd/xsdzgcjcx/getXspjxfjd`;
 const EXAMS_URL=`${ORIGIN}/admin/xsd/kwglXsdKscx/ajaxXsksList?gridtype=jqgrid`;
+/* 选课（2026-10-13 专项抓包 + 2026-10-14 真实账号只读实测） */
+const XK_BOOT=`${ORIGIN}/admin/xsd/xk/listV2`;
+const XK_JXB=`${ORIGIN}/admin/xsd/xk/listjxbDataV2`;
+const XK_CHILD=`${ORIGIN}/admin/xsd/xk/queryChildClassesV2`;
+const XK_ENROLLED=`${ORIGIN}/admin/xsd/yxkccx/listYxkc?gridtype=jqgrid&async=1`;
+const XK_SELECT=`${ORIGIN}/admin/xsd/xk/xsdXkV2`;
+const XK_DROP=`${ORIGIN}/admin/xsd/xk/xsdTkV2`;
 
 /** 超星综合教务系统全平台共用的 RSA 公钥（SPKI DER Base64，PKCS1v15）——已与登录页源码核对一致。 */
 const RSA_PUBLIC_KEY='MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCwC58ftEM2SJHu2H/IIF7DfAi74AtaQSXjGy9PWEb5qD2s0+uh+n1YZBEKDBwwLWZL6T2wVC26pGJuniTOPzGxe5ARTwMATsGKkDTKVNNxkZWxZJS8tuxlJoNP9RD5/u9H3wYJKxcv4VsnH1CwFqlEq7NihIjxvwk7F0omsIbphwIDAQAB';
@@ -34,8 +42,88 @@ const PERIODS:{number:number;start:string;end:string}[]=[
   {number:10,start:'20:25',end:'21:10'}
 ];
 
+/** 由 getZclistByXnxq 的 data.jcsjszList 生成作息表——作息按「校区 xqid + 学期」绑定，
+ * 各校/各学期节次数与时间都可能不同，接口下发比内置表可靠；拿不到时上层回退内置表。
+ * 实测条目：{"kssj":"8:20","jssj":"9:05","jc":"1","xnxq":"2026-2027-1","xqid":"00001",…}（kssj 不补零，统一补成 HH:MM）。 */
+const readPeriods=(raw:unknown):{number:number;start:string;end:string}[]=>{
+  if(!Array.isArray(raw))return[];
+  const norm=(t:string):string=>{
+    const m=/^(\d{1,2}):(\d{1,2})$/.exec(t.trim());
+    return m?`${m[1].padStart(2,'0')}:${m[2].padStart(2,'0')}`:'';
+  };
+  const out:{number:number;start:string;end:string}[]=[];
+  for(const row of raw){
+    if(!row||typeof row!=='object')continue;
+    const number=Number((row as{jc?:unknown}).jc);
+    const start=norm(String((row as{kssj?:unknown}).kssj??''));
+    const end=norm(String((row as{jssj?:unknown}).jssj??''));
+    if(!Number.isFinite(number)||number<1||number>30||!start||!end)continue;
+    if(out.some(p=>p.number===number))continue;
+    out.push({number,start,end});
+  }
+  out.sort((x,y)=>x.number-y.number);
+  return out;
+};
+
+/** 校区 id：作息/周历按「校区 xqid + 学期」绑定，不带 xqid 时 getZclistByXnxq 只回 dqzc（实测）。
+ * 优先用课表页隐藏域 xqdm（study.schedule 缓存），否则问 getXqList（实测 1 项：id=00001 永川）。 */
+const readCampusId=async(s:HostSdk):Promise<string>=>{
+  const cached=await s.state.get<string>('cqcvc.xqdm');
+  if(cached)return cached;
+  try{
+    const res=await s.http({url:XQLIST,method:'GET',purpose:'query',headers:AJAX_HEADERS});
+    if(pointsToLogin(res)||res.status<200||res.status>=300)return'';
+    const payload=JSON.parse(res.body);
+    const first=Array.isArray(payload?.data)?payload.data[0]:null;
+    const id=String(first?.id??'').trim();
+    if(id)await s.state.set('cqcvc.xqdm',id);
+    return id;
+  }catch{return'';}
+};
+
+/** 选课初始化：listV2 一次带回批次（mapsList，xkgzid 即 pcid）与每批次加密串（pcencs）。 */
+const readSelectionBootstrap=async(s:HostSdk):Promise<{rounds:Round[];pcenc:Record<string,string>;termId:string}|null>=>{
+  try{
+    const r=await fetchJson(s,{url:XK_BOOT,method:'POST',purpose:'query',headers:JSON_HEADERS});
+    if(!r.ok)return null;
+    const d=r.payload&&typeof r.payload.data==='object'&&r.payload.data?r.payload.data:null;
+    if(!d)return null;
+    const pcenc:Record<string,string>={};
+    if(d.pcencs&&typeof d.pcencs==='object')for(const k of Object.keys(d.pcencs))pcenc[k]=String((d.pcencs as Record<string,unknown>)[k]);
+    const termId=String(d.xkxnxq??'').trim();
+    const rounds:Round[]=[];
+    for(const m of Array.isArray(d.mapsList)?d.mapsList:[]){
+      if(!m||typeof m!=='object')continue;
+      const id=String((m as{xkgzid?:unknown}).xkgzid??'').trim();
+      if(!id)continue;
+      const name=String((m as{xkgzMc?:unknown}).xkgzMc??'').trim()||id;
+      rounds.push({id,name,termId,open:String((m as{sfkxk?:unknown}).sfkxk??'')!=='0'});
+    }
+    return{rounds,pcenc,termId};
+  }catch{return null;}
+};
+
+/** 宿主调用 select/drop 时常常只给 sectionId/enrollmentId，不带 roundId —— 此时用 listV2 的当前批次兜底（pcid 必填，学校会报「pcid 为空」）。 */
+const resolveRoundId=async(a:{roundId?:string},s:HostSdk):Promise<string>=>{
+  const rid=String(a.roundId??'').trim();
+  if(rid)return rid;
+  const boot=await readSelectionBootstrap(s);
+  return boot?.rounds[0]?.id??'';
+};
+
+/** 选课接口一次返回全量（本校单批次 ≤ 几十条），按 SDK 的 Page 协议切页。 */
+const pageOf=<T>(all:T[],q:PageQuery):Page<T>=>{
+  const size=q.pageSize&&q.pageSize>0?Math.min(200,Math.floor(q.pageSize)):20;
+  const start=q.cursor?Math.max(0,Number(q.cursor)||0):0;
+  const items=all.slice(start,start+size);
+  const out:Page<T>={items};
+  if(start+size<all.length)out.nextCursor=String(start+size);
+  return out;
+};
+
 const ok=<T>(data:T):Result<T>=>({ok:true,data});
-const err=<T>(code:ErrorCode,message:string):Result<T>=>({ok:false,error:{code,message}});
+// details 供真机诊断：宿主的插件诊断面板只透出错误码（不透出 message），所以把分支名与 HTTP 状态写进 details。
+const err=<T>(code:ErrorCode,message:string,details?:Record<string,string>):Result<T>=>({ok:false,error:details?{code,message,details}:{code,message}});
 
 /** 取 URL 路径（去 query/hash），不依赖 WHATWG URL（沙箱无 DOM 类型）。 */
 const pathOf=(u:string):string=>{
@@ -113,18 +201,37 @@ function parseWeeks(raw:unknown,maxWeeks:number):number[]{
   return Array.from(set).sort((x,y)=>x-y);
 }
 
-/** 读取本校学生身份：listV2 在非选课期也返回 xsxh / xsxm（真实响应已验证字段存在）。 */
+/** 读取本校学生身份：listV2 在非选课期也返回 xsxh / xsxm。
+ * 📌 v1.1.0 曾按抓包去掉请求体，真机（App 1.0.120）上无请求体的 POST 拿不到 xsxh → 登录被判 INVALID_CREDENTIALS；
+ * 现在三级降级：带 '{}' → 不带请求体 → getXqList 的 currentUserName（实测即学号）兜底。 */
 const readIdentity=async(s:HostSdk):Promise<{studentId:string;studentName:string}|null>=>{
+  const fromListV2=async(body:string|undefined):Promise<{studentId:string;studentName:string}|null>=>{
+    try{
+      const req:HttpRequest={url:IDENTITY,method:'POST',purpose:'query',headers:JSON_HEADERS};
+      if(body!==undefined)req.body=body;
+      const res=await s.http(req);
+      if(pointsToLogin(res))return null;
+      const payload=JSON.parse(res.body);
+      const d=payload&&typeof payload.data==='object'&&payload.data?payload.data:null;
+      if(!d)return null;
+      const studentId=String(d.xsxh??'').trim();
+      if(!studentId)return null;
+      const studentName=String(d.xsxm??'').trim()||studentId;
+      return{studentId,studentName};
+    }catch{return null;}
+  };
+  const first=await fromListV2('{}');
+  if(first)return first;
+  const second=await fromListV2(undefined);
+  if(second)return second;
   try{
-    const res=await s.http({url:IDENTITY,method:'POST',purpose:'query',headers:JSON_HEADERS,body:'{}'});
+    const res=await s.http({url:XQLIST,method:'GET',purpose:'query',headers:AJAX_HEADERS});
     if(pointsToLogin(res))return null;
     const payload=JSON.parse(res.body);
-    const d=payload&&typeof payload.data==='object'&&payload.data?payload.data:null;
-    if(!d)return null;
-    const studentId=String(d.xsxh??'').trim();
+    const row=Array.isArray(payload?.data)?payload.data[0]:null;
+    const studentId=String(row?.currentUserName??'').trim();
     if(!studentId)return null;
-    const studentName=String(d.xsxm??'').trim()||studentId;
-    return{studentId,studentName};
+    return{studentId,studentName:studentId};
   }catch{return null;}
 };
 
@@ -168,17 +275,33 @@ export default {
   auth:{
     /** 先预取登录页——复刻真实浏览器流程（丢弃其响应属正常）。 */
     start:async(a,c,s)=>{
+      // 输入先去掉首尾空白：手机粘贴密码容易带空格，会表现为"密码错误"。
+      const username=String(a.username??'').trim();
+      const password=String(a.password??'');
+      if(!username||!password)return err('VALIDATION_FAILED','请输入学号与密码',{stage:'input',usernameEmpty:String(!username),passwordEmpty:String(!password)});
+      // 预取登录页复刻真实浏览器（响应丢弃属正常）。
       try{await s.http({url:LOGIN,method:'GET',purpose:'auth',headers:{'Accept':'text/html'}});}catch{/* 预取失败不阻断登录 */}
       let enc:string;
-      try{enc=await s.crypto.rsaEncrypt(RSA_PUBLIC_KEY,a.password);}catch{return err('VALIDATION_FAILED','密码加密失败');}
+      try{enc=await s.crypto.rsaEncrypt(RSA_PUBLIC_KEY,password);}catch{return err('VALIDATION_FAILED','密码加密失败',{stage:'encrypt'});}
       let res:HttpResponse;
       try{
-        res=await s.http({url:LOGIN,method:'POST',purpose:'auth',form:{username:a.username,password:enc,jcaptchaCode:'',rememberMe:'1'}});
-      }catch{return err('INVALID_CREDENTIALS','登录请求未完成，请稍后重试');}
-      if(res.status>=500)return err('NETWORK_RETRYABLE','学校服务器暂时不可用');
-      if(res.status>=400||pointsToLogin(res))return err('INVALID_CREDENTIALS','学号或密码错误');
+        // X-Requested-With 与真实可用参考一致（本机脚本用同样报文登录成功）；其余请求头由宿主托管，
+        // SDK 契约只放行 accept / content-type / x-requested-with（referer 需 network.request@4，不为此抬门槛）。
+        res=await s.http({url:LOGIN,method:'POST',purpose:'auth',headers:{
+          'X-Requested-With':'XMLHttpRequest','Accept':'text/html,application/xhtml+xml,*/*;q=0.8'
+        },form:{username,password:enc,jcaptchaCode:'',rememberMe:'1'}});
+      }catch{return err('NETWORK_RETRYABLE','登录请求未完成，请稍后重试',{stage:'login.post',failure:'http-threw'});}
+      // 403 刻意不用 NETWORK_RETRYABLE：宿主诊断面板只导出错误码，把 WAF 拒绝单独映射成 PERMISSION_DENIED。
+      if(res.status===403)return err('PERMISSION_DENIED','请求被学校防火墙拦截（HTTP 403），请稍后重试',{stage:'login.post',status:'403'});
+      // 被跳回登录页 = 凭据问题（INVALID_CREDENTIALS），不再继续。
+      if(res.status>=400&&res.status<500||pointsToLogin(res))return err('INVALID_CREDENTIALS','学号或密码错误（登录请求被跳回登录页）',{stage:'login.post',status:String(res.status),bounced:String(pointsToLogin(res))});
+      // 关键：登录 POST 的 302 已经发出会话 Cookie，落地页 5xx 不等于登录失败 ——
+      // 先试身份，取不回再按 5xx 报错（真机诊断显示正是"登录成功但落地页 5xx"的形态）。
       const identity=await readIdentity(s);
-      if(!identity)return err('INVALID_CREDENTIALS','登录失败：服务器未建立会话');
+      if(!identity){
+        if(res.status>=500)return err('NETWORK_RETRYABLE',`学校服务器暂时不可用（HTTP ${res.status}）`,{stage:'login.post',status:String(res.status)});
+        return err('SESSION_EXPIRED','登录已提交但会话未建立：listV2 与 getXqList 都没拿到学号',{stage:'identity'});
+      }
       await s.state.set('cqcvc.identity',identity);
       await s.log('info','cqcvc login succeeded');
       return ok<AuthState>({status:'authenticated',studentId:identity.studentId,studentName:identity.studentName});
@@ -188,8 +311,8 @@ export default {
     validate:async(a,c,s)=>{
       let res:HttpResponse;
       try{res=await s.http({url:CURRENT_TERM,method:'GET',purpose:'query',headers:AJAX_HEADERS});}
-      catch{return err('SESSION_EXPIRED','会话已失效，请重新登录');}
-      if(res.status===401||res.status===403||pointsToLogin(res))return err('SESSION_EXPIRED','会话已失效，请重新登录');
+      catch{return err('SESSION_EXPIRED','会话已失效，请重新登录',{stage:'validate',failure:'http-threw'});}
+      if(res.status===401||res.status===403||pointsToLogin(res))return err('SESSION_EXPIRED','会话已失效，请重新登录',{stage:'validate',status:String(res.status)});
       const cached=await s.state.get<{studentId:string;studentName:string}>('cqcvc.identity');
       if(cached&&cached.studentId)return ok<AuthState>({status:'authenticated',studentId:cached.studentId,studentName:cached.studentName});
       const identity=await readIdentity(s);
@@ -254,7 +377,9 @@ export default {
         };
         const xhid=hiddenValue('xhid');
         if(xhid){
-          const skR=await fetchJson(s,{url:`${ORIGIN}/admin/pkgl/xskb/sdpkkbList?xnxq=${encodeURIComponent(a.termId)}&xhid=${encodeURIComponent(xhid)}&xqdm=${encodeURIComponent(hiddenValue('xqdm'))}&zdzc=&zxzc=&xskbxslx=0`,method:'GET',purpose:'query',headers:AJAX_HEADERS});
+          const xqdm=hiddenValue('xqdm');
+          if(xqdm)await s.state.set('cqcvc.xqdm',xqdm);
+          const skR=await fetchJson(s,{url:`${ORIGIN}/admin/pkgl/xskb/sdpkkbList?xnxq=${encodeURIComponent(a.termId)}&xhid=${encodeURIComponent(xhid)}&xqdm=${encodeURIComponent(xqdm)}&zdzc=&zxzc=&xskbxslx=0`,method:'GET',purpose:'query',headers:AJAX_HEADERS});
           if(skR.ok&&Array.isArray(skR.payload?.data)){
             for(const row of skR.payload.data){
               const day=Number(row?.xingqi);
@@ -334,28 +459,46 @@ export default {
       return ok<Schedule>({termId:a.termId,maxWeeks,entries});
     },
     calendar:async(a,c,s)=>{
-      // 开学日期（第一周周一）= 服务器 Date 头的本周一 − (dqzc−1) 周；仅当前学期可推算
+      // 数据源：getZclistByXnxq?xnxq=&role=&userId=&xqid= —— 实测 data 有 5 个键：
+      //   jcsjszList（校区+学期绑定的节次作息）、zclist（**权威周历**：zc/minrq/maxrq/rqfw）、
+      //   jsxq（排课设置）、dqzc（当前第几周）、kbxssj。不带 xqid 时只回 dqzc，作息与周历都会丢。
+      // 开学日期优先取 zclist[0].minrq（本校第一周不是完整周，见下），缺周历时才退回公式推算。
       const current=await s.state.get<string>('cqcvc.currentTermId');
       const isCurrent=!current||current===a.termId;
+      let periods=PERIODS.map(p=>({number:p.number,start:p.start,end:p.end}));
       let startDate:string|undefined;
-      if(isCurrent){
-        try{
-          const res=await s.http({url:`${ORIGIN}/admin/api/getZclistByXnxq`,method:'GET',purpose:'query',headers:AJAX_HEADERS});
-          if(!pointsToLogin(res)&&res.status>=200&&res.status<300){
-            const payload=JSON.parse(res.body);
-            const dq=Number(payload?.data?.dqzc);
-            const ms=parseHttpDate(headerOf(res,'Date'));
-            if(Number.isFinite(dq)&&dq>=1&&Number.isFinite(ms)){
-              const cn=ms+8*3600*1000;
-              const weekMonday=cn-((new Date(cn).getUTCDay()+6)%7)*86400000-(dq-1)*7*86400000;
-              const d=new Date(weekMonday);
-              const pad=(n:number)=>String(n).padStart(2,'0');
-              startDate=`${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+      try{
+        const campus=await readCampusId(s);
+        const query=campus?`?xnxq=${encodeURIComponent(a.termId)}&role=&userId=&xqid=${encodeURIComponent(campus)}`:'';
+        const res=await s.http({url:`${ORIGIN}/admin/api/getZclistByXnxq${query}`,method:'GET',purpose:'query',headers:AJAX_HEADERS});
+        if(!pointsToLogin(res)&&res.status>=200&&res.status<300){
+          const payload=JSON.parse(res.body);
+          const data=payload&&typeof payload.data==='object'&&payload.data?payload.data:null;
+          if(data){
+            const dynamic=readPeriods(data.jcsjszList);
+            if(dynamic.length)periods=dynamic;
+          }
+          if(isCurrent){
+            const weeks=Array.isArray(data?.zclist)?data.zclist:null;
+            const first=weeks&&weeks.length?String(weeks[0]?.minrq??''): '';
+            const exact=/^(\d{4}-\d{2}-\d{2})/.exec(first.trim());
+            if(exact)startDate=exact[1];
+            else{
+              // 兜底公式：开学日 = 服务器本周一 − (dqzc−1) 周——仅当第一周是完整周时准确。
+              const dq=Number(data?.dqzc);
+              const ms=parseHttpDate(headerOf(res,'Date'));
+              if(Number.isFinite(dq)&&dq>=1&&Number.isFinite(ms)){
+                const cn=ms+8*3600*1000;
+                const weekMonday=cn-((new Date(cn).getUTCDay()+6)%7)*86400000-(dq-1)*7*86400000;
+                const d=new Date(weekMonday);
+                const pad=(n:number)=>String(n).padStart(2,'0');
+                startDate=`${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+              }
             }
           }
-        }catch{/* 推算失败则不提供 startDate */}
-      }
-      const value:Calendar={termId:a.termId,periods:PERIODS.map(p=>({number:p.number,start:p.start,end:p.end}))};
+        }
+      }catch{/* 推算失败则不提供 startDate，作息回退内置表 */}
+      const value:Calendar={termId:a.termId,periods};
       if(startDate)value.startDate=startDate;
       return ok(value);
     },
@@ -440,6 +583,114 @@ export default {
       const totalPages=Number(payload?.totalPages);
       if(Number.isFinite(totalPages)&&pn<totalPages)out.nextCursor=String(pn+1);
       return ok(out);
+    }
+  },
+  /** 选课整组（SDK 契约要求 auth/selection 整组替换，六方法齐全）。协议来自 2026-10-13 选课专项抓包 + 2026-10-14 真实账号只读实测。
+   * 映射：Round←listV2.mapsList（xkgzid=pcid）· Course←listjxbDataV2.initData · Section←queryChildClassesV2.extend.zjxb（无子班时即教学班自身）
+   *      · Enrollment←已选课程查询 listYxkc · select/drop←xsdXkV2 / xsdTkV2（purpose=mutation，需用户确认） */
+  selection:{
+    catalog:async(a,c,s)=>{
+      const boot=await readSelectionBootstrap(s);
+      if(!boot)return err('NETWORK_RETRYABLE','选课批次获取失败，请稍后重试');
+      return ok(pageOf(boot.rounds,a));
+    },
+    courses:async(a,c,s)=>{
+      const boot=await readSelectionBootstrap(s);
+      if(!boot)return err('NETWORK_RETRYABLE','选课批次获取失败，请稍后重试');
+      const roundId=String(a.roundId??'');
+      const form:Record<string,string>={
+        from:'jhxk',kcmc:String(a.keyword??''),teacher:String(a.teacher??''),jxbmc:'',
+        glymjxb:'',glctjxb:'',kcxz:'',jxms:'',kcgs:'',kclb:'',kclx:'',kkxq:'',
+        pcid:roundId,pcenc:boot.pcenc[roundId]??''
+      };
+      const r=await fetchJson(s,{url:XK_JXB,method:'POST',purpose:'query',headers:AJAX_HEADERS,form});
+      if(!r.ok)return{ok:false,error:r.error};
+      if(Number(r.payload?.ret)!==0)return err('VALIDATION_FAILED',String(r.payload?.msg||'课程列表获取失败'));
+      const rows=Array.isArray(r.payload?.data?.initData)?r.payload.data.initData:[];
+      const items:Course[]=[];
+      for(const row of rows){
+        if(!row||typeof row!=='object')continue;
+        const name=String(row.kcmc??'').trim();
+        if(!name)continue;
+        const id=String(row.id??'').trim()||`c${items.length+1}`;
+        const course:Course={id,name,roundId,sectionId:id};
+        const teacher=String(row.teacher??'').trim();if(teacher)course.teacher=teacher;
+        const time=String(row.sksjdd??'').trim();if(time&&time!=='--/--')course.time=time;
+        const credits=String(row.xf??'').trim();if(credits)course.credits=credits;
+        const capacity=Number(String(row.yxrl??'').trim());if(Number.isFinite(capacity)&&capacity>0)course.capacity=capacity;
+        const selected=Number(String(row.bjrs??'').trim());if(Number.isFinite(selected))course.selected=selected;
+        const jxbmc=String(row.jxbmc??'').trim();if(jxbmc)course.sectionName=jxbmc;
+        items.push(course);
+      }
+      return ok(pageOf(items,a));
+    },
+    sections:async(a,c,s)=>{
+      const boot=await readSelectionBootstrap(s);
+      if(!boot)return err('NETWORK_RETRYABLE','选课批次获取失败，请稍后重试');
+      const r=await fetchJson(s,{url:XK_CHILD,method:'POST',purpose:'query',headers:AJAX_HEADERS,
+        form:{jxbid:String(a.courseId??''),pcid:String(a.roundId??''),pcenc:boot.pcenc[String(a.roundId??'')]??'',from:'jhxk'}});
+      if(r.ok&&Number(r.payload?.ret)===0){
+        const kids:any[]=Array.isArray(r.payload?.extend?.zjxb)?r.payload.extend.zjxb:[];
+        if(kids.length){
+          const items:Section[]=[];
+          for(let i=0;i<kids.length;i++){
+            const row:any=kids[i];
+            if(!row||typeof row!=='object')continue;
+            const id=String(row.id??row.jxbid??'').trim()||`s${i+1}`;
+            const sec:Section={id,courseId:String(a.courseId??'')};
+            const name=String(row.jxbmc??row.name??'').trim();if(name)sec.name=name;
+            items.push(sec);
+          }
+          if(items.length)return ok<Page<Section>>({items});
+        }
+      }
+      // 本校当前批次的教学班没有子班（实测 sfyzjxb 全为 0）→单教学班即课程自身，不再多打一次请求
+      return ok<Page<Section>>({items:[{id:String(a.courseId??''),courseId:String(a.courseId??'')}]});
+    },
+    enrolled:async(a,c,s)=>{
+      const pn=a.cursor?Math.max(1,Number(a.cursor)||1):1;
+      const size=a.pageSize&&a.pageSize>0?Math.min(200,Math.floor(a.pageSize)):50;
+      const r=await fetchJson(s,{url:`${XK_ENROLLED}&page.pn=${pn}&page.size=${size}&sort=id&order=asc&_search=false`,method:'GET',purpose:'query',headers:AJAX_HEADERS});
+      if(!r.ok)return{ok:false,error:r.error};
+      if(Number(r.payload?.ret)!==0)return err('VALIDATION_FAILED',String(r.payload?.msg||'已选课程获取失败'));
+      const rows=Array.isArray(r.payload?.results)?r.payload.results:[];
+      const items:Enrollment[]=[];
+      for(let i=0;i<rows.length;i++){
+        const row=rows[i];
+        if(!row||typeof row!=='object')continue;
+        const name=String(row.kcmc??'').trim();
+        if(!name)continue;
+        const id=String(row.id??'').trim()||`e${i+1}`;
+        const item:Enrollment={id,courseId:String(row.kcid??'').trim()||id,sectionId:id,name};
+        const teacher=String(row.rkjs??'').trim();if(teacher)item.teacher=teacher;
+        const time=String(row.sksjdd??'').trim();if(time&&time!=='--/--')item.time=time;
+        const credits=String(row.xf??'').trim();if(credits)item.credits=credits;
+        items.push(item);
+      }
+      const out:Page<Enrollment>={items};
+      const totalPages=Number(r.payload?.totalPages);
+      if(Number.isFinite(totalPages)&&pn<totalPages)out.nextCursor=String(pn+1);
+      return ok(out);
+    },
+    select:async(a,c,s)=>{
+      const pcid=await resolveRoundId(a,s);
+      if(!pcid)return err('NOT_OPEN','当前没有可操作的选课批次，请稍后再试');
+      const r=await fetchJson(s,{url:XK_SELECT,method:'POST',purpose:'mutation',headers:AJAX_HEADERS,
+        form:{jxbid:String(a.sectionId||a.courseId||''),pcid}});
+      if(!r.ok)return{ok:false,error:r.error};
+      const msg=String(r.payload?.msg??'').trim();
+      if(Number(r.payload?.ret)!==0)return err('VALIDATION_FAILED',msg||'选课失败');
+      return ok<SelectionReceipt>({confirmed:true,message:msg||'选课成功'});
+    },
+    drop:async(a,c,s)=>{
+      const pcid=await resolveRoundId(a,s);
+      if(!pcid)return err('NOT_OPEN','当前没有可操作的选课批次，请稍后再试');
+      const r=await fetchJson(s,{url:XK_DROP,method:'POST',purpose:'mutation',headers:AJAX_HEADERS,
+        form:{jxbid:String(a.enrollmentId||a.sectionId||a.courseId||''),pcid}});
+      if(!r.ok)return{ok:false,error:r.error};
+      const msg=String(r.payload?.msg??'').trim();
+      if(Number(r.payload?.ret)!==0)return err('VALIDATION_FAILED',msg||'退课失败');
+      return ok<SelectionReceipt>({confirmed:true,message:msg||'退课成功'});
     }
   }
 } satisfies AcademicPlugin;
